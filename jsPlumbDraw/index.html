@@ -301,11 +301,11 @@
 <script src="../layui/layui.js"></script>
 <script>
 layui.config({
-    base: 'file:///C:/Users/tom/Desktop' // 配置layui第三方插件存放的基础路径，自由更改
+    base: 'file:///D:/' // 配置layui第三方插件存放的基础路径，自由更改
 }).extend({
-    jqui: '/draw/jsplumb/jQueryUI.min',
-    jsPlumb: '/draw/jsplumb/jquery_jsplumb_forlayui.min',
-    draw: '/draw/jsPlumbDraw/config',
+    jqui: '/drawFlow/jsplumb/jQueryUI.min',
+    jsPlumb: '/drawFlow/jsplumb/jquery_jsplumb_forlayui.min',
+    draw: '/drawFlow/jsPlumbDraw/config',
 }).use(['laytpl', 'layer', 'jsPlumb', 'jqui', 'draw'], function() {
     var $ = layui.jquery, laytpl = layui.laytpl, jsPlumb = layui.jsPlumb, draw = layui.draw,
         layer = layui.layer;
