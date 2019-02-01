@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>antVG6--绘图</title>
+</head>
+<body>
+    <div id="chart"></div>
+    <div id="miniMap" style="position: absolute;top: 25px;left: 25px;border: 1px solid #01AAED"></div>
+
+
+<script src="../antvG6/g6.js"></script>
+<script src="../antvG6/plugins.js"></script>
+<script>
+    // 计算字体长度，包括中文字符
+    function GetLength(text){
+        return text.replace(/[\u0391-\uFFE5]/g,"aaa").length;
+    }
+
+    var data = {
+        nodes: [],
+        edges: []
+    };
+
+    data.nodes = [{
+        id: G6.Util.guid(), // 这三个唯一id都是不一样的
+        shape: 'rect',
+        label: {
+            text: 'node_' + G6.Util.guid(), // 这三个唯一id都是不一样的
+            fill: '#ffffff'
+        },
+        size: [parseInt(GetLength('node_' + G6.Util.guid())*8), 25] // 这三个唯一id都是不一样的
+    },{
+        id: G6.Util.guid(),
+        shape: 'rect',
+        label: {
+            text: 'node_' + G6.Util.guid(),
+            fill: '#ffffff'
+        },
+        size: [parseInt(GetLength('node_' + G6.Util.guid())*8), 25]
+    },{
+        id: G6.Util.guid(),
+        shape: 'rect',
+        label: {
+            text: 'node_' + G6.Util.guid(),
+            fill: '#ffffff'
+        },
+        size: [parseInt(GetLength('node_' + G6.Util.guid())*8), 25]
+    },{
+        id: G6.Util.guid(),
+        shape: 'rect',
+        label: {
+            text: 'node_' + G6.Util.guid(),
+            fill: '#ffffff'
+        },
+        size: [parseInt(GetLength('node_' + G6.Util.guid())*8), 25]
+    },{
+        id: G6.Util.guid(),
+        shape: 'diamond',
+        label: {
+            text: 'node_' + G6.Util.guid(),
+            fill: '#ffffff'
+        },
+        size: [parseInt(GetLength('node_' + G6.Util.guid())*8), 25]
+    }];
+
+    G6.registerNode('rect', {
+        getPath: function getPath(item) {
+            // console.log(item.getGraphicGroup());
+            if(item.model.size!==undefined){
+                var size=item.model.size;
+                var width = size[0]; // 一半宽
+                var height = size[1]; // 一半高
+            }else{
+                var width = 80; // 一半宽
+                var height = 25; // 一半高
+            }
+            return G6.Util.getRectPath(-width / 2, -height / 2, width, height, 10);
+        }
+    });
+
+    G6.registerNode('diamond', { // 自定义菱形框
+        draw(item) {
+            const group = item.getGraphicGroup();
+            const model = item.getModel();
+            // console.log(model);
+            group.addShape('path', { // 只能用path类型
+                attrs: {
+                    path: 'm 0, 0'+ // 位移
+                        'l 50, -25'+
+                        'l 50, 25'+
+                        'l -50, 25'+
+                        'l -50, -25'+
+                        'z',
+                    lineWidth: 2,
+                    lineJoin: 'round',
+                    fill: 'rgba(129,9,39,0.5)',
+                    stroke: '#54BECC',
+                    // fillOpacity: 0
+                }
+            });
+            return group.addShape('text', {
+                attrs: {
+                    x: 0,
+                    y: 0,
+                    fill: model.label.fill,
+                    text: model.label.text,
+                    textBaseline: 'middle',
+                }
+            });
+        }
+    });
+
+    var dagre = new G6.Plugins['layout.dagre']({
+        "nodesep": "10",
+        "edgesep": "10",
+    });
+
+    var minimap = new G6.Plugins['tool.minimap']({
+        "container": "miniMap",
+        "width": 150,
+        "height": 100,
+    });
+
+    var grid = new G6.Plugins['tool.grid']({
+        cell: 8,
+        type: 'line',
+        line: {
+            stroke: '#d0d0d050',
+            lineWidth: 0.2
+        }
+    });
+
+    var graph = new G6.Graph({
+        container: 'chart',
+        renderer: 'svg',
+        fitView: 'cc',
+        fitViewPadding: 10,
+        minZoom: 0.1,
+        maxZoom: 3,
+        height: window.innerHeight - 50, // 画布高
+        plugins: [dagre, minimap, grid],
+        defaultIntersectBox: 'rect' // 使用矩形包围盒
+    });
+
+    graph.edge({ // 线的样式，带箭头
+        style: {
+            endArrow: true
+        },
+    });
+
+    graph.on('wheel', function(ev) { // 鼠标滑轮滚动缩放
+        // console.log(ev.x, ev.y);
+        var pm = ev.domEvent.wheelDelta; // 等于120向上，等于-120向下滚动
+        var scale = graph.getZoom(); // 最大缩放比例由minZoom和maxZoom控制
+        if (pm > 0) {
+            graph.zoom({
+                x: ev.x,
+                y: ev.y
+            }, scale - 0.1);
+        }else{
+            graph.zoom({
+                x: ev.x,
+                y: ev.y
+            }, scale + 0.1);
+        } // 第一个参数是以坐标为中心，以第二个参数为缩放比例
+    });
+
+
+    graph.read(data);
+</script>
+</body>
+</html>

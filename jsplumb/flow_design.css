@@ -1,0 +1,49 @@
+/* 工作流中流程图的基本样式，引用flow_design.js时需要此样式文件 */
+
+/* 自定义节点样式 */
+.item-node {
+	position: absolute;
+	border: 1px solid #C9C9C9;
+	background-color: #fff;
+	color: #555;
+	height: 30px;
+	line-height: 30px;
+	padding: 0 10px;
+	font-size: 12px;
+	border-radius: 2px;
+	cursor: pointer;
+	white-space: nowrap;
+	text-align: center;
+	display: inline-block;
+	box-sizing: border-box;
+	vertical-align: middle;
+}
+.item-node:hover {
+	border: 1px solid #009688;
+}
+.layui-icon-close-fill {
+	cursor: pointer;
+	position: absolute;
+	top: -15px;
+	right: -6px;
+	font-size: 12px;
+}
+.layui-icon-close-fill:hover {
+	color: red;
+	border-radius: 20px;
+}
+.nodeName {
+	cursor: pointer;
+}
+
+/* jsplump的某些样式自定义 */
+.jsplumb-label {
+	background-color: white;
+	color: #434343;
+	padding: 2px;
+	z-index: 10;
+	font-size: 12px;
+}
+._jsPlumb_hover {
+	z-index: 100;
+}

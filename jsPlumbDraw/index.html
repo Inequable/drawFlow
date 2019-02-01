@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>JsPlumb Draw</title>
+    <!-- 引入layui的主要样式表 -->
+    <link rel="stylesheet" href="../layui/css/layui.css">
+    <!-- 引入jQueryUI的样式表 -->
+    <link rel="stylesheet" href="../jsplumb/jquery-ui.min.css">
+    <!-- 引入流程设计的样式 -->
+    <link rel="stylesheet" href="../jsplumb/flow_design.css">
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+    .layui-fluid {
+        padding: 5px;
+    }
+    .layui-card {
+        border: 1px solid #eeeeee;
+    }
+    .layui-card-header {
+        border-bottom: 1px solid #5FB878;
+    }
+    .btn-container {
+        max-height: 800px;
+	    overflow-y: auto;
+    }
+    .btn-container .btn-node {
+        border: 1px solid #C9C9C9;
+        background-color: #fff;
+        color: #555;
+        height: 30px;
+        line-height: 30px;
+        padding: 0 10px;
+        font-size: 12px;
+        border-radius: 2px;
+        cursor: pointer;
+        white-space: nowrap;
+        text-align: center;
+        display: inline-block;
+        box-sizing: border-box;
+        vertical-align: middle;
+        margin-right: 5px;
+        margin-bottom: 5px;
+        z-index: 2;
+    }
+    .btn-container .btn-node:hover {
+        border: 1px solid #009688;
+    }
+    #flow-container {
+        min-height: 600px;
+		background-image: linear-gradient(90deg, rgba(156, 144, 144, 0.15) 10%, rgba(0, 0, 0, 0) 10%), linear-gradient(rgba(105, 99, 99, 0.15) 10%, rgba(0, 0, 0, 0) 10%);
+		background-size: 10px 10px;
+		position: relative;
+		overflow: auto;
+    }
+    /* shape 形状样式 */
+    /* 临边相等的平行四边形 */
+    .diamond_outer {
+        width: 140px;
+        text-align: center;
+        height: 70px;
+        line-height: 70px;
+        display: inline-block;
+    }
+    .diamond_top {
+        width: 0;
+        height: 0;
+        border-bottom: 35px solid #9E9E9E;
+        border-right: 70px solid transparent;
+        border-left: 70px solid transparent;
+    }
+    .diamond_bottom {
+        width: 0;
+        height: 0;
+        border-top: 35px solid #9E9E9E;
+        border-right: 70px solid transparent;
+        border-left: 70px solid transparent;
+    }
+    .diamond_text {
+        width: 140px;
+        text-align: center;
+        float: left;
+        font-size: 12px;
+        color: #fff;
+    }
+    /* 矩形 */
+    .rectangle_outer {
+        width: 140px;
+        text-align: center;
+        height: 70px;
+        line-height: 70px;
+        display: inline-block;
+    }
+    .rectangle_text {
+        width: 140px;
+        text-align: center;
+        float: left;
+        font-size: 12px;
+        color: #fff;
+    }
+    .rectangle_top {
+        width: 0;
+        height: 0;
+        border-bottom: 35px solid #9E9E9E;
+        border-right: 70px solid #9E9E9E;
+        border-left: 70px solid #9E9E9E;
+    }
+    .rectangle_bottom {
+        width: 0;
+        height: 0;
+        border-top: 35px solid #9E9E9E;
+        border-right: 70px solid #9E9E9E;
+        border-left: 70px solid #9E9E9E;
+    }
+    /* Rounded Rectangle 圆角矩形 */
+    .roundedRect_outer {
+        width: 140px;
+        text-align: center;
+        height: 70px;
+        line-height: 70px;
+        display: inline-block;
+    }
+    .roundedRect_text {
+        width: 140px;
+        text-align: center;
+        float: left;
+        font-size: 12px;
+        color: #fff;
+    }
+    .roundedRect_top {
+        width: 0;
+        height: 0;
+        border-bottom: 35px solid #9E9E9E;
+        border-right: 70px solid #9E9E9E;
+        border-left: 70px solid #9E9E9E;
+        border-radius: 20px 20px 0px 0px;
+    }
+    .roundedRect_bottom {
+        width: 0;
+        height: 0;
+        border-top: 35px solid #9E9E9E;
+        border-right: 70px solid #9E9E9E;
+        border-left: 70px solid #9E9E9E;
+        border-radius: 0px 0px 20px 20px;
+    }
+    /* Arc rectangle 圆弧矩形 */
+    .arcRect_outer {
+        width: 140px;
+        text-align: center;
+        height: 70px;
+        line-height: 70px;
+        display: inline-block;
+    }
+    .arcRect_text {
+        width: 140px;
+        text-align: center;
+        float: left;
+        font-size: 12px;
+        color: #fff;
+    }
+    .arcRect {
+        width: 0;
+        height: 0;
+        border: 35px solid #9E9E9E;
+        border-right: 70px solid #9E9E9E;
+        border-left: 70px solid #9E9E9E;
+        border-radius: 40px;
+    }
+    /* hexagon 六边形 */
+    .hexagon_outer {
+        width: 140px;
+        text-align: center;
+        height: 70px;
+        line-height: 70px;
+        display: inline-block;
+    }
+    .hexagon_top {
+        width: 70px;
+        height: 0;
+        border-bottom: 35px solid #9E9E9E;
+        border-right: 35px solid transparent;
+        border-left: 35px solid transparent;
+    }
+    .hexagon_bottom {
+        width: 70px;
+        height: 0;
+        border-top: 35px solid #9E9E9E;
+        border-right: 35px solid transparent;
+        border-left: 35px solid transparent;
+    }
+    .hexagon_text {
+        width: 140px;
+        text-align: center;
+        float: left;
+        font-size: 12px;
+        color: #fff;
+    }
+    /* circular 圆形 */
+    </style>
+</head>
+<body>
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <div class="layui-btn-group">
+                <button type="button" class="layui-btn layui-btn-sm" title="保存">
+                    <i class="layui-icon">&#xe655;</i>
+                </button>
+                <button type="button" class="layui-btn layui-btn-sm" title="添加节点">
+                    <i class="layui-icon">&#xe61f;</i>
+                </button>
+                <button type="button" class="layui-btn layui-btn-sm" title="编辑点击元素">
+                    <i class="layui-icon">&#xe642;</i>
+                </button>
+                <button type="button" class="layui-btn layui-btn-sm" title="删除点击元素">
+                    <i class="layui-icon">&#xe640;</i>
+                </button>
+                <button type="button" class="layui-btn layui-btn-sm" title="连线">
+                    <i class="layui-icon">&#xe674;</i>
+                </button>
+                <button type="button" class="layui-btn layui-btn-sm" title="提示及帮助">
+                    <i class="layui-icon">&#xe60b;</i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="layui-row layui-col-space10">
+        <div class="layui-col-md2">
+            <div class="layui-card">
+				<div class="layui-card-header">步骤块区</div>
+				<div class="layui-card-body">
+					<div class="btn-container">
+                        <!-- 放置步骤区块 -->
+                        <!-- <div class="btn-node">
+                            <span class="nodeName">步骤区块</span>
+                        </div> -->
+					</div>
+				</div>
+			</div>
+        </div>
+        <div class="layui-col-md7">
+            <div class="layui-card">
+				<div class="layui-card-header">流程图示区</div>
+				<div class="layui-card-body">
+					<div class="flow-container" id="flow-container">
+						<!-- 放置流程设计图的容器 -->
+					</div>
+				</div>
+			</div>
+        </div>
+        <div class="layui-col-md3">
+            <div class="layui-card">
+				<div class="layui-card-header">步骤逻辑区</div>
+				<div class="layui-card-body">
+					<div class="logic-container">
+                        <!-- 步骤逻辑区 -->
+                        <div class="diamond_outer">
+                            <div class="diamond_text">菱形(决策)</div>
+                            <div class="diamond_top"></div>
+                            <div class="diamond_bottom"></div>
+                        </div>
+                        <div class="rectangle_outer">
+                            <div class="rectangle_text">矩形(过程)</div>
+                            <div class="rectangle_top"></div>
+                            <div class="rectangle_bottom"></div>
+                        </div>
+                        <div class="roundedRect_outer">
+                            <div class="roundedRect_text">圆角矩形(可选过程)</div>
+                            <div class="roundedRect_top"></div>
+                            <div class="roundedRect_bottom"></div>
+                        </div>
+                        <div class="arcRect_outer">
+                            <div class="arcRect_text">圆弧矩形(开始/结束)</div>
+                            <div class="arcRect"></div>
+                        </div>
+                        <div class="hexagon_outer">
+                            <div class="hexagon_text">六边形(准备)</div>
+                            <div class="hexagon_top"></div>
+                            <div class="hexagon_bottom"></div>
+                        </div>
+					</div>
+				</div>
+			</div>
+        </div>
+    </div>
+</div>
+
+<!-- 克隆到流程容器的模板节点 -->
+<script type="text/html" id="node">
+    <div id="{{ d.id }}" data-json="{{ d.jsonNode }}" style="top: {{ d.top }}px; left: {{ d.left }}px; cursor: Move;" class="item-node">
+		<span class="nodeName">{{ d.name }}</span>
+		<i class="layui-icon layui-icon-close-fill"></i>
+	</div>
+</script>
+<!-- 引入layui的js文件 -->
+<script src="../layui/layui.js"></script>
+<script>
+layui.config({
+    base: 'file:///C:/Users/tom/Desktop' // 配置layui第三方插件存放的基础路径，自由更改
+}).extend({
+    jqui: '/draw/jsplumb/jQueryUI.min',
+    jsPlumb: '/draw/jsplumb/jquery_jsplumb_forlayui.min',
+    draw: '/draw/jsPlumbDraw/config',
+}).use(['laytpl', 'layer', 'jsPlumb', 'jqui', 'draw'], function() {
+    var $ = layui.jquery, laytpl = layui.laytpl, jsPlumb = layui.jsPlumb, draw = layui.draw,
+        layer = layui.layer;
+
+    var element = '';
+    for (var i = 0; i < 30; i++) {
+        element += '<div class="btn-node">步骤区块' + i + '</div>';
+    }
+    $('.btn-container').html(element);
+
+    var fun = {
+        mockMakeUUID: function() { // 模拟生成uuid
+            return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+        },
+        guid: function() { // 生成uuid的长串
+            return (this.mockMakeUUID() + this.mockMakeUUID() + "-" + this.mockMakeUUID() + "-" + this.mockMakeUUID() + "-" + this.mockMakeUUID() + "-" + this.mockMakeUUID() + this.mockMakeUUID() + this.mockMakeUUID());
+        },
+        renderNode: function(_data) {
+            var uuid = this.guid();
+            var data = $.extend(true, {
+                id: uuid,
+                top: 0,
+                left: 0,
+                jsonNode: []
+            }, _data);
+            laytpl($('#node').html()).render(data, function(_html) {
+                $('#flow-container').append(_html);
+            });
+            // 渲染完节点再让节点仅可在父容器中移动
+            jsPlumb.draggable(uuid, {
+                containment: "parent"
+            });
+
+            // 添加节点中的链接点
+            // draw.config.isSource = true;
+            // draw.config.isTarget = true;
+            // jsPlumb.addEndpoint(uuid, {
+            // }, draw.config);
+        },
+        cloneNode: function() {
+            $('.btn-node').draggable({
+                helper: 'clone',
+                scope: "copyNode"
+            });
+            $('#flow-container').droppable({
+                scope: "copyNode",
+                drop: function (_event, _ui) {
+                    var data = {
+                        name: _ui.draggable[0].innerText,
+                        top: _ui.position.top,
+                        left: _ui.position.left - $('.layui-col-md2').outerWidth(),
+                        // jsonNode: JSON.stringify({
+                        //     id: _event.handleObj.guid // 这个guid好像是不重复的
+                        // }),
+                        jsonNode: []
+                    };
+                    fun.renderNode(data);
+                }
+            });
+        }
+    };
+
+    var active = {
+        delNode: function(_nodeId) {
+            jsPlumb.remove(_nodeId);
+        }
+    };
+
+    jsPlumb.ready(function() {
+        jsPlumb.setContainer('flow-container'); // 设置画布容器节点
+        fun.cloneNode();
+    });
+    jsPlumb.importDefaults({
+        ConnectionsDetachable: false
+    });
+
+    $('.layui-btn-group .layui-btn').on('click', function() {
+        var btnGroup = $('.layui-btn-group').children('.layui-btn');
+        for(var i = 0; i < btnGroup.length; i++) {
+            var ele = btnGroup[i];
+            if ($(this).attr('title') === $(ele).attr('title')) {
+                $(this).addClass('layui-btn-primary');
+            }else{
+                $(ele).removeClass('layui-btn-primary');
+            }
+        }
+        return false;
+    });
+
+    // 单击节点相关事件操作
+    $(document).on('click', '#flow-container .item-node', function(e) {
+        var nodeId = this.id;
+        var className = e.target.className; // 获取点击
+        // console.log(className);
+        if (className === 'layui-icon layui-icon-close-fill') {
+            layer.confirm('是否要删除此节点', { icon: 3, title: '提示' }, function(_index) {
+                active.delNode(nodeId);
+                layer.close(_index);
+            }, function() {
+                layer.msg('你已取消删除此节点操作');
+            });
+        }
+    });
+
+    // 双击节点文本事件操作
+    $(document).on('dblclick', '#flow-container .item-node', function(e) {
+        var t = ($(this).text()).replace(/(^\s*)|(\s*$)/g, ""); // 获取当前点击的节点文本值，并去除前后空格
+        var className = e.target.className; // 获取点击
+        if (className === 'nodeName') {
+            layer.prompt({ title: '重新命名文本框', formType: 0, value: t }, function(_text, _index) {
+                layer.close(_index);
+                $('.' + className).text(_text);
+            });
+        }
+    });
+
+    $(document).keydown(function (e) {
+        // console.log(e.keyCode, e.key); // 键值和键名
+        if (e.keyCode === 27) { // 当用户按下esc时清空按钮组的样式
+            $('.layui-btn-group .layui-btn').removeClass('layui-btn-primary');
+        }
+        if (e.ctrlKey && e.keyCode === 86) { // 组合键的判断 Ctrl+v
+            console.log('你按下了ctrl+V');
+        }
+    });
+});
+</script>
+</body>
+</html>
