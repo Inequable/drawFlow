@@ -239,30 +239,9 @@
 				<div class="layui-card-body">
 					<div class="btn-container">
                         <!-- 放置步骤区块 -->
-                        <div class="shape diamond diamond_outer">
-                            <div class="diamond_text">菱形(决策)</div>
-                            <div class="diamond_top"></div>
-                            <div class="diamond_bottom"></div>
-                        </div>
-                        <div class="shape rectangle rectangle_outer">
-                            <div class="rectangle_text">矩形(过程)</div>
-                            <div class="rectangle_top"></div>
-                            <div class="rectangle_bottom"></div>
-                        </div>
-                        <div class="shape roundedRect roundedRect_outer">
-                            <div class="roundedRect_text">圆角矩形(可选过程)</div>
-                            <div class="roundedRect_top"></div>
-                            <div class="roundedRect_bottom"></div>
-                        </div>
-                        <div class="shape arcRect arcRect_outer">
-                            <div class="arcRect_text">圆弧矩形(开始/结束)</div>
-                            <div class="arcRect"></div>
-                        </div>
-                        <div class="shape hexagon hexagon_outer">
-                            <div class="hexagon_text">六边形(准备)</div>
-                            <div class="hexagon_top"></div>
-                            <div class="hexagon_bottom"></div>
-                        </div>
+                        <!-- <div class="btn-node">
+                            <span class="nodeName">步骤区块</span>
+                        </div> -->
 					</div>
 				</div>
 			</div>
@@ -283,6 +262,30 @@
 				<div class="layui-card-body">
 					<div class="logic-container">
                         <!-- 步骤逻辑区 -->
+                        <div class="shape diamond_outer">
+                            <div class="diamond_text">菱形(决策)</div>
+                            <div class="diamond_top"></div>
+                            <div class="diamond_bottom"></div>
+                        </div>
+                        <div class="shape rectangle_outer">
+                            <div class="rectangle_text">矩形(过程)</div>
+                            <div class="rectangle_top"></div>
+                            <div class="rectangle_bottom"></div>
+                        </div>
+                        <div class="shape roundedRect_outer">
+                            <div class="roundedRect_text">圆角矩形(可选过程)</div>
+                            <div class="roundedRect_top"></div>
+                            <div class="roundedRect_bottom"></div>
+                        </div>
+                        <div class="shape arcRect_outer">
+                            <div class="arcRect_text">圆弧矩形(开始/结束)</div>
+                            <div class="arcRect"></div>
+                        </div>
+                        <div class="shape hexagon_outer">
+                            <div class="hexagon_text">六边形(准备)</div>
+                            <div class="hexagon_top"></div>
+                            <div class="hexagon_bottom"></div>
+                        </div>
 					</div>
 				</div>
 			</div>
@@ -298,16 +301,12 @@
 	</div>
 </script>
 <script type="text/html" id="shapeNode">
-    <div id="{{ d.id }}" data-json="{{ d.jsonNode }}" style="top: {{ d.top }}px; left: {{ d.left }}px; cursor: Move;" class="item-node item-shape-node">
-        {{# if(d.shape !== 'arcRect'){ }}
-        <div class="{{ d.shape }}_text">
-            <span class="nodeName">{{ d.name }}</span>
+    <div id="{{ d.id }}" data-json="{{ d.jsonNode }}" style="top: {{ d.top }}px; right: {{ d.left }}px; cursor: Move;" class="shape diamond_outer item-shape-node">
+        <div class="diamond_text">
+            <span class="nodeName">菱形(决策)</span>
         </div>
-        <div class="{{ d.shape }}_top"></div>
-        <div class="{{ d.shape }}_bottom"></div>
-        {{# }else{ }}
-        <div class="arcRect"></div>
-        {{# } }}
+        <div class="diamond_top"></div>
+        <div class="diamond_bottom"></div>
     </div >
 </script>
 
@@ -328,7 +327,7 @@ layui.config({
     for (var i = 0; i < 30; i++) {
         element += '<div class="btn-node">步骤区块' + i + '</div>';
     }
-    $('.btn-container').append(element);
+    $('.btn-container').html(element);
 
     var fun = {
         mockMakeUUID: function() { // 模拟生成uuid
@@ -400,13 +399,8 @@ layui.config({
                 }
             });
         },
-        renderShapeNode: (_data) => {
+        cloneShapeNode: (_data) => {
             var uuid = fun.guid();
-            var data = $.extend(true, {
-                id: uuid
-            }, _data);
-        },
-        cloneShapeNode: () => {
             $('.shape').draggable({
                 helper: 'clone',
                 scope: "shapeNode"
