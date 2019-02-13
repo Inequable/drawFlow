@@ -305,15 +305,11 @@
 </script>
 <script type="text/html" id="shapeNode">
     <div id="{{ d.id }}" data-json="{{ d.jsonNode }}" style="top: {{ d.top }}px; left: {{ d.left }}px; cursor: Move;" class="item-shape-node {{ d.shape }}_outer">
-        {{# if(d.shape !== 'arcRect'){ }}
         <div class="{{ d.shape }}_text">
             <span class="nodeName">{{ d.name }}</span>
         </div>
         <div class="{{ d.shape }}_top"></div>
         <div class="{{ d.shape }}_bottom"></div>
-        {{# }else{ }}
-        <div class="arcRect"></div>
-        {{# } }}
     </div >
 </script>
 
@@ -421,6 +417,7 @@ layui.config({
             $('#flow-container').droppable({
                 scope: "shapeNode",
                 drop: function (_event, _ui) {
+                    console.log(_ui.helper.data('shape'));
                     laytpl($('#shapeNode').html()).render({
                         id: uuid,
                         shape: _ui.helper.data('shape'),
