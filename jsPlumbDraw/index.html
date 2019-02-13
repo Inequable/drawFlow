@@ -61,6 +61,7 @@
     /* shape 形状样式 */
     /* 临边相等的平行四边形 */
     .diamond_outer {
+        z-index: 2;
         width: 140px;
         text-align: center;
         height: 70px;
@@ -90,6 +91,7 @@
     }
     /* 矩形 */
     .rectangle_outer {
+        z-index: 2;
         width: 140px;
         text-align: center;
         height: 70px;
@@ -119,6 +121,7 @@
     }
     /* Rounded Rectangle 圆角矩形 */
     .roundedRect_outer {
+        z-index: 2;
         width: 140px;
         text-align: center;
         height: 70px;
@@ -150,6 +153,7 @@
     }
     /* Arc rectangle 圆弧矩形 */
     .arcRect_outer {
+        z-index: 2;
         width: 140px;
         text-align: center;
         height: 70px;
@@ -163,7 +167,7 @@
         font-size: 12px;
         color: #fff;
     }
-    .arcRect {
+    .arcRect_top {
         width: 0;
         height: 0;
         border: 35px solid #9E9E9E;
@@ -173,6 +177,7 @@
     }
     /* hexagon 六边形 */
     .hexagon_outer {
+        z-index: 2;
         width: 140px;
         text-align: center;
         height: 70px;
@@ -239,26 +244,27 @@
 				<div class="layui-card-body">
 					<div class="btn-container">
                         <!-- 放置步骤区块 -->
-                        <div class="shape diamond diamond_outer">
+                        <div class="shape diamond_outer" data-shape="diamond">
                             <div class="diamond_text">菱形(决策)</div>
                             <div class="diamond_top"></div>
                             <div class="diamond_bottom"></div>
                         </div>
-                        <div class="shape rectangle rectangle_outer">
+                        <div class="shape rectangle_outer" data-shape="rectangle">
                             <div class="rectangle_text">矩形(过程)</div>
                             <div class="rectangle_top"></div>
                             <div class="rectangle_bottom"></div>
                         </div>
-                        <div class="shape roundedRect roundedRect_outer">
+                        <div class="shape roundedRect_outer" data-shape="roundedRect">
                             <div class="roundedRect_text">圆角矩形(可选过程)</div>
                             <div class="roundedRect_top"></div>
                             <div class="roundedRect_bottom"></div>
                         </div>
-                        <div class="shape arcRect arcRect_outer">
+                        <div class="shape arcRect_outer" data-shape="arcRect">
                             <div class="arcRect_text">圆弧矩形(开始/结束)</div>
-                            <div class="arcRect"></div>
+                            <div class="arcRect_top"></div>
+                            <div class="arcRect_bottom"></div>
                         </div>
-                        <div class="shape hexagon hexagon_outer">
+                        <div class="shape hexagon_outer" data-shape="hexagon">
                             <div class="hexagon_text">六边形(准备)</div>
                             <div class="hexagon_top"></div>
                             <div class="hexagon_bottom"></div>
@@ -298,7 +304,7 @@
 	</div>
 </script>
 <script type="text/html" id="shapeNode">
-    <div id="{{ d.id }}" data-json="{{ d.jsonNode }}" style="top: {{ d.top }}px; left: {{ d.left }}px; cursor: Move;" class="item-node item-shape-node">
+    <div id="{{ d.id }}" data-json="{{ d.jsonNode }}" style="top: {{ d.top }}px; left: {{ d.left }}px; cursor: Move;" class="item-shape-node {{ d.shape }}_outer">
         {{# if(d.shape !== 'arcRect'){ }}
         <div class="{{ d.shape }}_text">
             <span class="nodeName">{{ d.name }}</span>
@@ -407,6 +413,7 @@ layui.config({
             }, _data);
         },
         cloneShapeNode: () => {
+            var uuid = fun.guid();
             $('.shape').draggable({
                 helper: 'clone',
                 scope: "shapeNode"
@@ -416,6 +423,7 @@ layui.config({
                 drop: function (_event, _ui) {
                     laytpl($('#shapeNode').html()).render({
                         id: uuid,
+                        shape: _ui.helper.data('shape'),
                         name: _ui.draggable[0].innerText,
                         top: _ui.position.top,
                         left: _ui.position.left - $('.layui-col-md2').outerWidth(),
@@ -447,8 +455,8 @@ layui.config({
 
     jsPlumb.ready(function() {
         jsPlumb.setContainer('flow-container'); // 设置画布容器节点
-        fun.cloneNode(); // 两个只能出现一个
-        // fun.cloneShapeNode(); // 两个只能出现一个
+        // fun.cloneNode(); // 两个只能出现一个
+        fun.cloneShapeNode(); // 两个只能出现一个
     });
     // jsPlumb.importDefaults({
     //     ConnectionsDetachable: false // 是否拖动锚点断开连接
