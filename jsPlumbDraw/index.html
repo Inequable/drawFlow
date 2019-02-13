@@ -200,7 +200,10 @@
         font-size: 12px;
         color: #fff;
     }
-    /* circular 圆形 */
+    /* shape clone container */
+    .item-shape-node {
+        position: absolute;
+    }
     </style>
 </head>
 <body>
@@ -208,7 +211,7 @@
     <div class="layui-card">
         <div class="layui-card-body">
             <div class="layui-btn-group">
-                <button type="button" class="layui-btn layui-btn-sm" title="保存">
+                <button type="button" class="layui-btn layui-btn-sm" title="保存" data-type="save">
                     <i class="layui-icon">&#xe655;</i>
                 </button>
                 <button type="button" class="layui-btn layui-btn-sm" title="添加节点">
@@ -259,26 +262,26 @@
 				<div class="layui-card-body">
 					<div class="logic-container">
                         <!-- 步骤逻辑区 -->
-                        <div class="diamond_outer">
+                        <div class="shape diamond_outer">
                             <div class="diamond_text">菱形(决策)</div>
                             <div class="diamond_top"></div>
                             <div class="diamond_bottom"></div>
                         </div>
-                        <div class="rectangle_outer">
+                        <div class="shape rectangle_outer">
                             <div class="rectangle_text">矩形(过程)</div>
                             <div class="rectangle_top"></div>
                             <div class="rectangle_bottom"></div>
                         </div>
-                        <div class="roundedRect_outer">
+                        <div class="shape roundedRect_outer">
                             <div class="roundedRect_text">圆角矩形(可选过程)</div>
                             <div class="roundedRect_top"></div>
                             <div class="roundedRect_bottom"></div>
                         </div>
-                        <div class="arcRect_outer">
+                        <div class="shape arcRect_outer">
                             <div class="arcRect_text">圆弧矩形(开始/结束)</div>
                             <div class="arcRect"></div>
                         </div>
-                        <div class="hexagon_outer">
+                        <div class="shape hexagon_outer">
                             <div class="hexagon_text">六边形(准备)</div>
                             <div class="hexagon_top"></div>
                             <div class="hexagon_bottom"></div>
@@ -297,6 +300,16 @@
 		<i class="layui-icon layui-icon-close-fill"></i>
 	</div>
 </script>
+<script type="text/html" id="shapeNode">
+    <div id="{{ d.id }}" data-json="{{ d.jsonNode }}" style="top: {{ d.top }}px; right: {{ d.left }}px; cursor: Move;" class="shape diamond_outer item-shape-node">
+        <div class="diamond_text">
+            <span class="nodeName">菱形(决策)</span>
+        </div>
+        <div class="diamond_top"></div>
+        <div class="diamond_bottom"></div>
+    </div >
+</script>
+
 <!-- 引入layui的js文件 -->
 <script src="../layui/layui.js"></script>
 <script>
@@ -321,7 +334,8 @@ layui.config({
             return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
         },
         guid: function() { // 生成uuid的长串
-            return (this.mockMakeUUID() + this.mockMakeUUID() + "-" + this.mockMakeUUID() + "-" + this.mockMakeUUID() + "-" + this.mockMakeUUID() + "-" + this.mockMakeUUID() + this.mockMakeUUID() + this.mockMakeUUID());
+            return (this.mockMakeUUID() + this.mockMakeUUID() + "-" + this.mockMakeUUID() + "-" + this.mockMakeUUID() + "-" 
+                    + this.mockMakeUUID() + "-" + this.mockMakeUUID() + this.mockMakeUUID() + this.mockMakeUUID());
         },
         renderNode: function(_data) {
             var uuid = this.guid();
@@ -334,16 +348,35 @@ layui.config({
             laytpl($('#node').html()).render(data, function(_html) {
                 $('#flow-container').append(_html);
             });
+
+            // 放置方法的位置一定要在设置节点可拖动的前面，这样才不会导致节点和端点一起拖动，导致不能连线
+            jsPlumb.makeSource(uuid, {
+                anchor: [[0.2, 0, 0, 0], "Top", "Right", "Bottom", "Left", "BottomLeft", /*"TopRight",*/ "TopLeft", "BottomRight"], // 可以使用 Continuous 属性，产生锚点位置
+                allowLoopback: false, //禁止回环
+                filter: function(_ev, _ele) {
+                    var tar = _ev.target.tagName;
+                    if (tar === 'SPAN' || tar === 'I') {
+                        // 过滤这两个标签不创造端点
+                        return false;
+                    }
+                    // if(tar === 'DIV') {
+                    //     console.log(_ev.target.tagName);
+                    //     // 这里要处理端点自适应出现的位置，不设置会导致连接默认点的位置
+                    // }
+                }
+            }, draw.config);
+
             // 渲染完节点再让节点仅可在父容器中移动
             jsPlumb.draggable(uuid, {
                 containment: "parent"
             });
 
-            // 添加节点中的链接点
-            // draw.config.isSource = true;
-            // draw.config.isTarget = true;
-            // jsPlumb.addEndpoint(uuid, {
-            // }, draw.config);
+            // jsplumb实际上不支持改变节点大小，实际上只能通过jquery ui resizable 方法去改变。改变节点尺寸大小，还是不需要
+            // $('#' + uuid).resizable({
+            //     resize: function (event, ui) {
+            //         jsPlumb.repaint(ui.helper)
+            //     }
+            // });
         },
         cloneNode: function() {
             $('.btn-node').draggable({
@@ -365,23 +398,66 @@ layui.config({
                     fun.renderNode(data);
                 }
             });
+        },
+        cloneShapeNode: (_data) => {
+            var uuid = fun.guid();
+            $('.shape').draggable({
+                helper: 'clone',
+                scope: "shapeNode"
+            });
+            $('#flow-container').droppable({
+                scope: "shapeNode",
+                drop: function (_event, _ui) {
+                    laytpl($('#shapeNode').html()).render({
+                        id: uuid,
+                        name: _ui.draggable[0].innerText,
+                        top: _ui.position.top,
+                        left: _ui.position.left - $('.layui-col-md2').outerWidth(),
+                        jsonNode: []
+                    }, function (_html) {
+                        $('#flow-container').append(_html);
+                    });
+                }
+            });
         }
     };
 
     var active = {
         delNode: function(_nodeId) {
             jsPlumb.remove(_nodeId);
+        },
+        save: function() {
+            console.log(jsPlumb.getAllConnections()); // 可以获取所有的连线集
+            console.log($('#flow-container').children('.item-node')); // 获取所有的节点
         }
     };
 
-    jsPlumb.ready(function() {
-        jsPlumb.setContainer('flow-container'); // 设置画布容器节点
-        fun.cloneNode();
-    });
-    jsPlumb.importDefaults({
-        ConnectionsDetachable: false
+    $('.layui-btn').on('click', function(e) {
+        var type = $(this).data('type');
+        if (active[type]) {
+            active[type].call(this, e);
+        }
     });
 
+    jsPlumb.ready(function() {
+        jsPlumb.setContainer('flow-container'); // 设置画布容器节点
+        fun.cloneNode(); // 两个只能出现一个
+        // fun.cloneShapeNode(); // 两个只能出现一个
+    });
+    // jsPlumb.importDefaults({
+    //     ConnectionsDetachable: false // 是否拖动锚点断开连接
+    // });
+    
+    // 连接前的检查，判断是否建立连接,避免连线源锚点和目标锚点在同一节点上
+    jsPlumb.bind('beforeDrop', function (_info) {
+        if (_info.sourceId === _info.targetId) {
+            return false;
+        }else{
+            return true;
+        }
+    });
+
+    // 操作按钮组的功能组
     $('.layui-btn-group .layui-btn').on('click', function() {
         var btnGroup = $('.layui-btn-group').children('.layui-btn');
         for(var i = 0; i < btnGroup.length; i++) {
@@ -414,10 +490,12 @@ layui.config({
     $(document).on('dblclick', '#flow-container .item-node', function(e) {
         var t = ($(this).text()).replace(/(^\s*)|(\s*$)/g, ""); // 获取当前点击的节点文本值，并去除前后空格
         var className = e.target.className; // 获取点击
+        var thisId = $(e.target).parent().attr('id'); // 获取所点击的id
         if (className === 'nodeName') {
             layer.prompt({ title: '重新命名文本框', formType: 0, value: t }, function(_text, _index) {
                 layer.close(_index);
-                $('.' + className).text(_text);
+                $('#' + thisId + ' .nodeName').text(_text); // 将新值赋值到所点击的元素上
+                // 有个bug，可能需要重新绘制一下图形，不绘制的话可能会无法正确显示锚点
             });
         }
     });

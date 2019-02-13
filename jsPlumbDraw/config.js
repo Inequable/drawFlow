@@ -58,13 +58,13 @@ layui.define(function(exp) {
             strokeStyle: 'red',
             stroke: 'blue'
         }, // 连接线端点悬停样式
-        isSource: false,
+        isSource: true, // 是否可以拖动（作为连线起点）
         connector: ['Flowchart', {
             gap: 10,
             cornerRadius: 5,
             alwaysRespectStubs: true
         }],
-        isTarget: false,
+        isTarget: true, // 是否可以放置（作为连线终点）
         maxConnections: -1,
         connectorOverlays: [ // 附加到每个连接的默认重叠
             ['Arrow', {
