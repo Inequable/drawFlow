@@ -1,0 +1,176 @@
+/* shape 形状样式 */
+/* 临边相等的平行四边形 */
+.diamond_outer {
+    z-index: 2;
+    width: 100px;
+    text-align: center;
+    height: 50px;
+    line-height: 50px;
+    display: inline-block;
+}
+
+.diamond_top {
+    width: 0;
+    height: 0;
+    border-bottom: 25px solid #9E9E9E;
+    border-right: 50px solid transparent;
+    border-left: 50px solid transparent;
+}
+
+.diamond_bottom {
+    width: 0;
+    height: 0;
+    border-top: 25px solid #9E9E9E;
+    border-right: 50px solid transparent;
+    border-left: 50px solid transparent;
+}
+
+.diamond_text {
+    width: 100px;
+    text-align: center;
+    float: left;
+    font-size: 12px;
+    color: #fff;
+}
+
+/* 矩形 */
+.rectangle_outer {
+    z-index: 2;
+    width: 100px;
+    text-align: center;
+    height: 50px;
+    line-height: 50px;
+    display: inline-block;
+}
+
+.rectangle_text {
+    width: 100px;
+    text-align: center;
+    float: left;
+    font-size: 12px;
+    color: #fff;
+}
+
+.rectangle_top {
+    width: 0;
+    height: 0;
+    border-bottom: 25px solid #9E9E9E;
+    border-right: 50px solid #9E9E9E;
+    border-left: 50px solid #9E9E9E;
+}
+
+.rectangle_bottom {
+    width: 0;
+    height: 0;
+    border-top: 25px solid #9E9E9E;
+    border-right: 50px solid #9E9E9E;
+    border-left: 50px solid #9E9E9E;
+}
+
+/* Rounded Rectangle 圆角矩形 */
+.roundedRect_outer {
+    z-index: 2;
+    width: 100px;
+    text-align: center;
+    height: 50px;
+    line-height: 50px;
+    display: inline-block;
+}
+
+.roundedRect_text {
+    width: 100px;
+    text-align: center;
+    float: left;
+    font-size: 12px;
+    color: #fff;
+}
+
+.roundedRect_top {
+    width: 0;
+    height: 0;
+    border-bottom: 25px solid #9E9E9E;
+    border-right: 50px solid #9E9E9E;
+    border-left: 50px solid #9E9E9E;
+    border-radius: 20px 20px 0px 0px;
+}
+
+.roundedRect_bottom {
+    width: 0;
+    height: 0;
+    border-top: 25px solid #9E9E9E;
+    border-right: 50px solid #9E9E9E;
+    border-left: 50px solid #9E9E9E;
+    border-radius: 0px 0px 20px 20px;
+}
+
+/* Arc rectangle 圆弧矩形 */
+.arcRect_outer {
+    z-index: 2;
+    width: 100px;
+    text-align: center;
+    height: 50px;
+    line-height: 50px;
+    display: inline-block;
+}
+
+.arcRect_text {
+    width: 100px;
+    text-align: center;
+    float: left;
+    font-size: 12px;
+    color: #fff;
+}
+
+.arcRect_top {
+    width: 0;
+    height: 0;
+    border: 25px solid #9E9E9E;
+    border-right: 50px solid #9E9E9E;
+    border-left: 50px solid #9E9E9E;
+    border-radius: 40px;
+}
+
+/* hexagon 六边形 */
+.hexagon_outer {
+    z-index: 2;
+    width: 100px;
+    text-align: center;
+    height: 50px;
+    line-height: 50px;
+    display: inline-block;
+}
+
+.hexagon_top {
+    width: 50px;
+    height: 0;
+    border-bottom: 25px solid #9E9E9E;
+    border-right: 25px solid transparent;
+    border-left: 25px solid transparent;
+}
+
+.hexagon_bottom {
+    width: 50px;
+    height: 0;
+    border-top: 25px solid #9E9E9E;
+    border-right: 25px solid transparent;
+    border-left: 25px solid transparent;
+}
+
+.hexagon_text {
+    width: 100px;
+    text-align: center;
+    float: left;
+    font-size: 12px;
+    color: #fff;
+}
+
+/* shape clone container */
+.item-shape-node {
+    position: absolute;
+}
+
+.item-shape-node:hover {
+    box-sizing: border-box;
+    box-shadow: 0px 0px 10px 0px #a5a5a5;
+    border: #ffffff 1px solid;
+}

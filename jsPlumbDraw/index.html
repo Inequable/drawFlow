@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="../jsplumb/jquery-ui.min.css">
     <!-- 引入流程设计的样式 -->
     <link rel="stylesheet" href="../jsplumb/flow_design.css">
+    <!-- 引入shape的样式 -->
+    <link rel="stylesheet" href="../jsPlumbDraw/shape.css">
     <style>
     * {
         margin: 0;
@@ -58,156 +60,16 @@
 		position: relative;
 		overflow: auto;
     }
-    /* shape 形状样式 */
-    /* 临边相等的平行四边形 */
-    .diamond_outer {
-        z-index: 2;
-        width: 140px;
-        text-align: center;
-        height: 70px;
-        line-height: 70px;
-        display: inline-block;
+    .shape-menu {
+
     }
-    .diamond_top {
-        width: 0;
-        height: 0;
-        border-bottom: 35px solid #9E9E9E;
-        border-right: 70px solid transparent;
-        border-left: 70px solid transparent;
-    }
-    .diamond_bottom {
-        width: 0;
-        height: 0;
-        border-top: 35px solid #9E9E9E;
-        border-right: 70px solid transparent;
-        border-left: 70px solid transparent;
-    }
-    .diamond_text {
-        width: 140px;
-        text-align: center;
-        float: left;
-        font-size: 12px;
+    .shape-menu a {
+        display: block;
+        padding: 0 20px;
         color: #fff;
-    }
-    /* 矩形 */
-    .rectangle_outer {
-        z-index: 2;
-        width: 140px;
-        text-align: center;
-        height: 70px;
-        line-height: 70px;
-        display: inline-block;
-    }
-    .rectangle_text {
-        width: 140px;
-        text-align: center;
-        float: left;
-        font-size: 12px;
-        color: #fff;
-    }
-    .rectangle_top {
-        width: 0;
-        height: 0;
-        border-bottom: 35px solid #9E9E9E;
-        border-right: 70px solid #9E9E9E;
-        border-left: 70px solid #9E9E9E;
-    }
-    .rectangle_bottom {
-        width: 0;
-        height: 0;
-        border-top: 35px solid #9E9E9E;
-        border-right: 70px solid #9E9E9E;
-        border-left: 70px solid #9E9E9E;
-    }
-    /* Rounded Rectangle 圆角矩形 */
-    .roundedRect_outer {
-        z-index: 2;
-        width: 140px;
-        text-align: center;
-        height: 70px;
-        line-height: 70px;
-        display: inline-block;
-    }
-    .roundedRect_text {
-        width: 140px;
-        text-align: center;
-        float: left;
-        font-size: 12px;
-        color: #fff;
-    }
-    .roundedRect_top {
-        width: 0;
-        height: 0;
-        border-bottom: 35px solid #9E9E9E;
-        border-right: 70px solid #9E9E9E;
-        border-left: 70px solid #9E9E9E;
-        border-radius: 20px 20px 0px 0px;
-    }
-    .roundedRect_bottom {
-        width: 0;
-        height: 0;
-        border-top: 35px solid #9E9E9E;
-        border-right: 70px solid #9E9E9E;
-        border-left: 70px solid #9E9E9E;
-        border-radius: 0px 0px 20px 20px;
-    }
-    /* Arc rectangle 圆弧矩形 */
-    .arcRect_outer {
-        z-index: 2;
-        width: 140px;
-        text-align: center;
-        height: 70px;
-        line-height: 70px;
-        display: inline-block;
-    }
-    .arcRect_text {
-        width: 140px;
-        text-align: center;
-        float: left;
-        font-size: 12px;
-        color: #fff;
-    }
-    .arcRect_top {
-        width: 0;
-        height: 0;
-        border: 35px solid #9E9E9E;
-        border-right: 70px solid #9E9E9E;
-        border-left: 70px solid #9E9E9E;
-        border-radius: 40px;
-    }
-    /* hexagon 六边形 */
-    .hexagon_outer {
-        z-index: 2;
-        width: 140px;
-        text-align: center;
-        height: 70px;
-        line-height: 70px;
-        display: inline-block;
-    }
-    .hexagon_top {
-        width: 70px;
-        height: 0;
-        border-bottom: 35px solid #9E9E9E;
-        border-right: 35px solid transparent;
-        border-left: 35px solid transparent;
-    }
-    .hexagon_bottom {
-        width: 70px;
-        height: 0;
-        border-top: 35px solid #9E9E9E;
-        border-right: 35px solid transparent;
-        border-left: 35px solid transparent;
-    }
-    .hexagon_text {
-        width: 140px;
-        text-align: center;
-        float: left;
-        font-size: 12px;
-        color: #fff;
-    }
-    /* shape clone container */
-    .item-shape-node {
-        position: absolute;
+        color: rgba(255,255,255,.7);
+        transition: all .3s;
+        -webkit-transition: all .3s;
     }
     </style>
 </head>
@@ -289,6 +151,11 @@
 				<div class="layui-card-body">
 					<div class="logic-container">
                         <!-- 步骤逻辑区 -->
+                        <div class="shape-menu layui-anim layui-anim-upbit">
+                            <a>复制</a>
+                            <a>删除</a>
+                            <a>编辑表单</a>
+                        </div>
 					</div>
 				</div>
 			</div>
@@ -297,14 +164,9 @@
 </div>
 
 <!-- 克隆到流程容器的模板节点 -->
-<script type="text/html" id="node">
-    <div id="{{ d.id }}" data-json="{{ d.jsonNode }}" style="top: {{ d.top }}px; left: {{ d.left }}px; cursor: Move;" class="item-node">
-		<span class="nodeName">{{ d.name }}</span>
-		<i class="layui-icon layui-icon-close-fill"></i>
-	</div>
-</script>
 <script type="text/html" id="shapeNode">
     <div id="{{ d.id }}" data-json="{{ d.jsonNode }}" style="top: {{ d.top }}px; left: {{ d.left }}px; cursor: Move;" class="item-shape-node {{ d.shape }}_outer">
+        <i class="layui-icon layui-icon-close-fill"></i>
         <div class="{{ d.shape }}_text">
             <span class="nodeName">{{ d.name }}</span>
         </div>
@@ -326,12 +188,6 @@ layui.config({
     var $ = layui.jquery, laytpl = layui.laytpl, jsPlumb = layui.jsPlumb, draw = layui.draw,
         layer = layui.layer;
 
-    var element = '';
-    for (var i = 0; i < 30; i++) {
-        element += '<div class="btn-node">步骤区块' + i + '</div>';
-    }
-    $('.btn-container').append(element);
-
     var fun = {
         mockMakeUUID: function() { // 模拟生成uuid
             return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
@@ -340,73 +196,28 @@ layui.config({
             return (this.mockMakeUUID() + this.mockMakeUUID() + "-" + this.mockMakeUUID() + "-" + this.mockMakeUUID() + "-" 
                     + this.mockMakeUUID() + "-" + this.mockMakeUUID() + this.mockMakeUUID() + this.mockMakeUUID());
         },
-        renderNode: function(_data) {
-            var uuid = this.guid();
-            var data = $.extend(true, {
-                id: uuid,
-                top: 0,
-                left: 0,
-                jsonNode: []
-            }, _data);
-            laytpl($('#node').html()).render(data, function(_html) {
-                $('#flow-container').append(_html);
-            });
-
-            // 放置方法的位置一定要在设置节点可拖动的前面，这样才不会导致节点和端点一起拖动，导致不能连线
-            jsPlumb.makeSource(uuid, {
-                anchor: [[0.2, 0, 0, 0], "Top", "Right", "Bottom", "Left", "BottomLeft", /*"TopRight",*/ "TopLeft", "BottomRight"], // 可以使用 Continuous 属性，产生锚点位置
-                allowLoopback: false, //禁止回环
-                filter: function(_ev, _ele) {
-                    var tar = _ev.target.tagName;
-                    if (tar === 'SPAN' || tar === 'I') {
-                        // 过滤这两个标签不创造端点
-                        return false;
-                    }
-                    // if(tar === 'DIV') {
-                    //     console.log(_ev.target.tagName);
-                    //     // 这里要处理端点自适应出现的位置，不设置会导致连接默认点的位置
-                    // }
-                }
-            }, draw.config);
-
-            // 渲染完节点再让节点仅可在父容器中移动
-            jsPlumb.draggable(uuid, {
-                containment: "parent"
-            });
-
-            // jsplumb实际上不支持改变节点大小，实际上只能通过jquery ui resizable 方法去改变。改变节点尺寸大小，还是不需要
-            // $('#' + uuid).resizable({
-            //     resize: function (event, ui) {
-            //         jsPlumb.repaint(ui.helper)
-            //     }
-            // });
-        },
-        cloneNode: function() {
-            $('.btn-node').draggable({
-                helper: 'clone',
-                scope: "copyNode"
-            });
-            $('#flow-container').droppable({
-                scope: "copyNode",
-                drop: function (_event, _ui) {
-                    var data = {
-                        name: _ui.draggable[0].innerText,
-                        top: _ui.position.top,
-                        left: _ui.position.left - $('.layui-col-md2').outerWidth(),
-                        // jsonNode: JSON.stringify({
-                        //     id: _event.handleObj.guid // 这个guid好像是不重复的
-                        // }),
-                        jsonNode: []
-                    };
-                    fun.renderNode(data);
-                }
-            });
-        },
         renderShapeNode: (_data) => {
             var uuid = fun.guid();
             var data = $.extend(true, {
                 id: uuid
             }, _data);
+            laytpl($('#shapeNode').html()).render(data, function(_html) {
+                $('#flow-container').append(_html);
+            });
+            jsPlumb.makeSource(uuid, {
+                anchor: [[0.2, 0, 0, 0], "Top", "Right", "Bottom", "Left", "BottomLeft", /*"TopRight",*/ "TopLeft", "BottomRight"], // 可以使用 Continuous 属性，产生锚点位置
+                allowLoopback: false, //禁止回环
+                filter: function (_ev, _ele) {
+                    var tar = _ev.target.tagName;
+                    if (tar === 'SPAN' || tar === 'I') {
+                        // 过滤这两个标签不创造端点
+                        return false;
+                    }
+                },
+            }, draw.config);
+            jsPlumb.draggable(uuid, {
+                containment: "parent"
+            });
         },
         cloneShapeNode: () => {
             var uuid = fun.guid();
@@ -417,17 +228,14 @@ layui.config({
             $('#flow-container').droppable({
                 scope: "shapeNode",
                 drop: function (_event, _ui) {
-                    console.log(_ui.helper.data('shape'));
-                    laytpl($('#shapeNode').html()).render({
-                        id: uuid,
+                    var data = {
                         shape: _ui.helper.data('shape'),
-                        name: _ui.draggable[0].innerText,
+                        name: _ui.helper.text(),
                         top: _ui.position.top,
                         left: _ui.position.left - $('.layui-col-md2').outerWidth(),
                         jsonNode: []
-                    }, function (_html) {
-                        $('#flow-container').append(_html);
-                    });
+                    };
+                    fun.renderShapeNode(data);
                 }
             });
         }
@@ -452,8 +260,7 @@ layui.config({
 
     jsPlumb.ready(function() {
         jsPlumb.setContainer('flow-container'); // 设置画布容器节点
-        // fun.cloneNode(); // 两个只能出现一个
-        fun.cloneShapeNode(); // 两个只能出现一个
+        fun.cloneShapeNode();
     });
     // jsPlumb.importDefaults({
     //     ConnectionsDetachable: false // 是否拖动锚点断开连接
@@ -483,7 +290,7 @@ layui.config({
     });
 
     // 单击节点相关事件操作
-    $(document).on('click', '#flow-container .item-node', function(e) {
+    $(document).on('click', '#flow-container .item-shape-node', function(e) {
         var nodeId = this.id;
         var className = e.target.className; // 获取点击
         // console.log(className);
@@ -520,6 +327,26 @@ layui.config({
             console.log('你按下了ctrl+V');
         }
     });
+
+    // 鼠标右键功能
+    // 禁用某元素组织右键点击事件
+    $(document).on("contextmenu", "#flow-container .item-shape-node", function () {
+        return false;
+    });
+
+    // 激活item-shape-node右键功能
+    $(document).on('mousedown', '#flow-container .item-shape-node', function (e) {
+        var k = e.which;
+        if (3 === k) {
+            var x = e.clientX;
+            var y = e.clientY;
+            console.log(x, y);
+
+        }else{
+            return false;
+        }
+    });
+
 });
 </script>
 </body>

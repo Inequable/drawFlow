@@ -24,9 +24,10 @@
 .layui-icon-close-fill {
 	cursor: pointer;
 	position: absolute;
-	top: -15px;
+	top: -24px;
 	right: -6px;
 	font-size: 12px;
+	height: 0px;
 }
 .layui-icon-close-fill:hover {
 	color: red;
@@ -47,3 +48,10 @@
 ._jsPlumb_hover {
 	z-index: 100;
 }
+._jsPlumb_connector {
+	z-index: 10;
+}
+._jsPlumb_endpoint {
+	z-index: 10;
+}
+
