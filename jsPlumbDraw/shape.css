@@ -1,3 +1,7 @@
+.shape {
+    cursor: pointer;
+}
+
 /* shape 形状样式 */
 /* 临边相等的平行四边形 */
 .diamond_outer {
