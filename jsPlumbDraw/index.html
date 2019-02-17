@@ -31,51 +31,12 @@
         max-height: 800px;
 	    overflow-y: auto;
     }
-    .btn-container .btn-node {
-        border: 1px solid #C9C9C9;
-        background-color: #fff;
-        color: #555;
-        height: 30px;
-        line-height: 30px;
-        padding: 0 10px;
-        font-size: 12px;
-        border-radius: 2px;
-        cursor: pointer;
-        white-space: nowrap;
-        text-align: center;
-        display: inline-block;
-        box-sizing: border-box;
-        vertical-align: middle;
-        margin-right: 5px;
-        margin-bottom: 5px;
-        z-index: 2;
-    }
-    .btn-container .btn-node:hover {
-        border: 1px solid #009688;
-    }
     #flow-container {
         min-height: 600px;
 		background-image: linear-gradient(90deg, rgba(156, 144, 144, 0.15) 10%, rgba(0, 0, 0, 0) 10%), linear-gradient(rgba(105, 99, 99, 0.15) 10%, rgba(0, 0, 0, 0) 10%);
 		background-size: 10px 10px;
 		position: relative;
 		overflow: auto;
-    }
-    .shape-menu {
-        border-radius: 2px;
-        box-shadow: 1px 1px 50px rgba(0,0,0,.3);
-        background-color: #5fb878;
-        padding: 5px 0 5px 0;
-    }
-    .shape-menu a {
-        display: block;
-        padding: 5px 20px;
-        color: #fff;
-        transition: all .3s;
-        -webkit-transition: all .3s;
-        font-size: 12px;
-    }
-    .shape-menu a:hover {
-        color: darkviolet;
     }
     </style>
 </head>
@@ -99,6 +60,9 @@
                 <button type="button" class="layui-btn layui-btn-sm" title="连线">
                     <i class="layui-icon">&#xe674;</i>
                 </button>
+                <button type="button" class="layui-btn layui-btn-sm" title="剪贴板">
+                    <i class="layui-icon">&#xe630;</i>
+                </button>
                 <button type="button" class="layui-btn layui-btn-sm" title="提示及帮助">
                     <i class="layui-icon">&#xe60b;</i>
                 </button>
@@ -106,7 +70,7 @@
         </div>
     </div>
     <div class="layui-row layui-col-space10">
-        <div class="layui-col-md2">
+        <div class="layui-col-md3">
             <div class="layui-card">
 				<div class="layui-card-header">步骤块区</div>
 				<div class="layui-card-body">
@@ -141,7 +105,7 @@
 				</div>
 			</div>
         </div>
-        <div class="layui-col-md7">
+        <div class="layui-col-md9">
             <div class="layui-card">
 				<div class="layui-card-header">流程图示区</div>
 				<div class="layui-card-body">
@@ -151,29 +115,24 @@
 				</div>
 			</div>
         </div>
-        <div class="layui-col-md3">
-            <div class="layui-card">
-				<div class="layui-card-header">步骤逻辑区</div>
-				<div class="layui-card-body">
-					<div class="logic-container">
-                        <!-- 步骤逻辑区 -->
-					</div>
-				</div>
-			</div>
-        </div>
     </div>
 </div>
 
 <!-- 克隆到流程容器的模板节点 -->
 <script type="text/html" id="shapeNode">
-    <div id="{{ d.id }}" data-json="{{ d.jsonNode }}" style="top: {{ d.top }}px; left: {{ d.left }}px; cursor: Move;" class="item-shape-node {{ d.shape }}_outer">
+    <div id="{{ d.id }}" data-shape="{{ d.shape }}" data-json="{{ d.jsonNode }}" style="top: {{ d.top }}px; left: {{ d.left }}px; cursor: Move;" class="item-shape-node {{ d.shape }}_outer">
         <i class="layui-icon layui-icon-close-fill"></i>
         <div class="{{ d.shape }}_text">
-            <span class="nodeName">{{ d.name }}</span>
+            <span class="nodeName" title="{{ d.name }}">{{ d.name }}</span>
         </div>
         <div class="{{ d.shape }}_top"></div>
         <div class="{{ d.shape }}_bottom"></div>
     </div >
+</script>
+
+<script type="text/html" id="bar">
+    <a class="layui-btn layui-btn-xs" lay-event="listorder">排序</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
 </script>
 
 <!-- 引入layui的js文件 -->
@@ -185,17 +144,20 @@ layui.config({
     jqui: '/drawFlow/jsplumb/jQueryUI.min',
     jsPlumb: '/drawFlow/jsplumb/jquery_jsplumb_forlayui.min',
     draw: '/drawFlow/jsPlumbDraw/config',
-}).use(['laytpl', 'layer', 'jsPlumb', 'jqui', 'draw'], function() {
+}).use(['laytpl', 'layer', 'jsPlumb', 'jqui', 'draw', 'table'], function() {
     var $ = layui.jquery, laytpl = layui.laytpl, jsPlumb = layui.jsPlumb, draw = layui.draw,
-        layer = layui.layer;
+        layer = layui.layer, table = layui.table;
+    
+    // 存储复制操作时的临时存储模板变量
+    var tplArr = [];
 
     var fun = {
         mockMakeUUID: function() { // 模拟生成uuid
             return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
         },
         guid: function() { // 生成uuid的长串
-            return (this.mockMakeUUID() + this.mockMakeUUID() + "-" + this.mockMakeUUID() + "-" + this.mockMakeUUID() + "-" 
-                    + this.mockMakeUUID() + "-" + this.mockMakeUUID() + this.mockMakeUUID() + this.mockMakeUUID());
+            return (fun.mockMakeUUID() + fun.mockMakeUUID() + "-" + fun.mockMakeUUID() + "-" + fun.mockMakeUUID() + "-" 
+                    + fun.mockMakeUUID() + "-" + fun.mockMakeUUID() + fun.mockMakeUUID() + fun.mockMakeUUID());
         },
         renderShapeNode: (_data) => {
             var uuid = fun.guid();
@@ -205,7 +167,10 @@ layui.config({
             laytpl($('#shapeNode').html()).render(data, function(_html) {
                 $('#flow-container').append(_html);
             });
-            jsPlumb.makeSource(uuid, {
+            fun.createPoint2Drop(uuid);
+        },
+        createPoint2Drop: (_uuid) => {
+            jsPlumb.makeSource(_uuid, {
                 anchor: [[0.2, 0, 0, 0], "Top", "Right", "Bottom", "Left", "BottomLeft", /*"TopRight",*/ "TopLeft", "BottomRight"], // 可以使用 Continuous 属性，产生锚点位置
                 allowLoopback: false, //禁止回环
                 filter: function (_ev, _ele) {
@@ -216,12 +181,11 @@ layui.config({
                     }
                 },
             }, draw.config);
-            jsPlumb.draggable(uuid, {
+            jsPlumb.draggable(_uuid, {
                 containment: "parent"
             });
         },
         cloneShapeNode: () => {
-            var uuid = fun.guid();
             $('.shape').draggable({
                 helper: 'clone',
                 scope: "shapeNode"
@@ -233,7 +197,7 @@ layui.config({
                         shape: _ui.helper.data('shape'),
                         name: _ui.helper.text(),
                         top: _ui.position.top,
-                        left: _ui.position.left - $('.layui-col-md2').outerWidth(),
+                        left: _ui.position.left - $('.layui-col-md3').outerWidth(),
                         jsonNode: []
                     };
                     fun.renderShapeNode(data);
@@ -248,7 +212,7 @@ layui.config({
         },
         save: function() {
             console.log(jsPlumb.getAllConnections()); // 可以获取所有的连线集
-            console.log($('#flow-container').children('.item-node')); // 获取所有的节点
+            console.log($('#flow-container').children('.item-shape-node')); // 获取所有的节点
         },
         editForm: function() {
             layer.closeAll();
@@ -271,8 +235,85 @@ layui.config({
                 layer.msg('你已取消删除此节点操作');
                 layer.close(_index);
             });
+        },
+        editNodeName: function(_id) {
+            layer.closeAll();
+            // 查找到相关节点的nodeName的文本，并将前后的空格去掉
+            var t = $('#' + _id).find('.nodeName').text().replace(/(^\s*)|(\s*$)/g, "");;
+            layer.prompt({ title: '重新命名文本框', formType: 0, value: t }, function(_text, _index) {
+                layer.close(_index);
+                $('#' + _id + ' .nodeName').text(_text); // 将新值赋值到所点击的元素上
+                $('#' + _id + ' .nodeName').attr('title', _text); // 将新值赋值到所点击的元素上
+            });
+        },
+        copyNode: function(_id) {
+            layer.closeAll();
+            // 生成uuid，担有个缺点，多次引用会产生多个不同的uuid，去除clone时产生的多余类名（必须）
+            var h = $('#' + _id).clone().removeClass('ui-droppable ui-draggable ui-draggable-handle');
+            // 放进预先定义好的模板数组里
+            tplArr.push(h);
+            return false;
+        },
+        pasteNode: (_id, _xy) => {
+            // 粘贴节点
+            layer.closeAll();
+            if ($.isArray(tplArr) && tplArr.length > 0) {
+                // 为即将复制的模板节点做一些改变，改变唯一id，和改变定位样式
+                var tpl = tplArr[0].attr('id', fun.guid()).css({'left': _xy[0], 'top': _xy[1]}).show();
+                $('#flow-container').append(tpl);
+                // 使新clone的节点能移动和连线，必须从clone的节点获取到id在渲染
+                fun.createPoint2Drop(tpl.attr('id'));
+                // 为避免将模板节点粘贴完以后会出现第二次粘贴时，覆盖第一次的粘贴的节点，导致多次粘贴以后还是只有一个粘贴的节点
+                tplArr[0] =tpl.clone().removeClass('ui-droppable ui-draggable ui-draggable-handle');
+            }else{
+                layer.msg('您没有复制任何节点！');
+            }
+            return false;
+        },
+        clipboard: () => {
+            layer.closeAll();
+            // 打开剪贴板并操作
+            layer.open({
+                title: '剪贴板',
+                shade: 0,
+                offset: '100px',
+                area: '50%',
+                fixed: false,
+                btn: [],
+                content: '<div class="layui-table layui-hide" id="table" lay-filter="table"></div>',
+                success: (index, layero) => {
+                    // 渲染剪贴板中的数据
+                    table.render({
+                        elem: '#table',
+                        data: [ // 需要将tplArr中数组数据对应转化成table中json数据进行回显 to do 
+                            {id: 0, shape: 'ssss'}
+                        ],
+                        page: true,
+                        cols: [[
+                            {type: 'radio', fixed: 'left'},
+                            {field: 'id', title: '序号', align: 'center'},
+                            {field: 'shape', title: '图形模板', align: 'center'},
+                            {title: '操作', toolbar: '#bar', fixed: 'right', align: 'center'}
+                        ]],
+                    });
+                }
+            });
         }
     };
+
+    // 监听table中bar事件
+    table.on('tool(table)', function(obj){
+        // console.log(obj);
+        switch(obj.event){
+            case 'listorder':
+                layer.msg('listorder');
+                break;
+            case 'del':
+                layer.msg('删除');
+                break;
+        };
+        return false;
+    });
 
     // 单击按钮触发事件
     $('.layui-btn').on('click', function(e) {
@@ -284,23 +325,57 @@ layui.config({
 
     // 点击图形菜单时触发的事件
     $(document).on('click', '.shape-menu a', function() {
-        var type = $(this).data('type'), id = $(this).data('id');
-        if (active[type]) {
-            active[type].call(this, id);
+        var type = $(this).data('type'), id = $(this).data('id'), xy = $(this).data('xy');
+        if (this.className.indexOf('layui-disabled') > -1) {
+            // 如果点击的菜单有layui-disable这个类名的话，无法触发当前点击的方法
+            return false;
         }
+        if (active[type]) {
+            active[type].call(this, id, xy);
+        }
+        return false;
     });
 
     jsPlumb.ready(function() {
         jsPlumb.setContainer('flow-container'); // 设置画布容器节点
         fun.cloneShapeNode();
+        jsPlumb.bind('dblclick', function (_conn, _originalEvent) { // 双击链接线，触发删除链接线
+			layer.confirm('确定要删除链接吗？', { icon: 3, title: '提示' }, function(_index) {
+                jsPlumb.detach(_conn); // 删除连接线
+                layer.close(_index);
+			}, function() {
+                layer.msg('你已取消删除此连线操作');
+            });
+		});
     });
-    // jsPlumb.importDefaults({
-    //     ConnectionsDetachable: false // 是否拖动锚点断开连接
+    jsPlumb.importDefaults({
+        ConnectionsDetachable: false // 是否拖动锚点断开连接
+    });
+
+    // 连线后触发的事件
+    // jsPlumb.bind("connection",function(_info){
+    //     console.log(_info);
     // });
     
-    // 连接前的检查，判断是否建立连接,避免连线源锚点和目标锚点在同一节点上
+    // 连接前的检查，判断是否建立连接
     jsPlumb.bind('beforeDrop', function (_info) {
+        // 获取所有的连线信息
+        var connInfo = jsPlumb.getAllConnections(), b = 1;
+        if ($.isArray(connInfo) && connInfo.length > 0) {
+            $.each(connInfo, function(i, v) {
+                // 防止两个节点回环，如：1-2 变成 2-1
+                var s = v.sourceId, t = v.targetId;
+                if (_info.sourceId === t && _info.targetId === s) {
+                    b = 0;
+                    return false;
+                }
+            });
+        }
+        if (b === 0) {
+            return false;
+        }
         if (_info.sourceId === _info.targetId) {
+            // 避免连线源锚点和目标锚点在同一节点上(自连接)
             return false;
         }else{
             return true;
@@ -324,6 +399,7 @@ layui.config({
     // 单击节点相关事件操作
     $(document).on('click', '#flow-container .item-shape-node', function(e) {
         var nodeId = this.id;
+        $('#' + this.id).addClass('shape-active'); // 点击节点时，增加高亮显示的样式
         var className = e.target.className; // 获取点击
         // console.log(className);
         if (className === 'layui-icon layui-icon-close-fill') {
@@ -337,30 +413,45 @@ layui.config({
     });
 
     // 双击节点文本事件操作
-    $(document).on('dblclick', '#flow-container .item-node', function(e) {
+    $(document).on('dblclick', '#flow-container .item-shape-node', function(e) {
         var t = ($(this).text()).replace(/(^\s*)|(\s*$)/g, ""); // 获取当前点击的节点文本值，并去除前后空格
         var className = e.target.className; // 获取点击
-        var thisId = $(e.target).parent().attr('id'); // 获取所点击的id
+        var thisId = this.id; // 获取所点击的id
         if (className === 'nodeName') {
             layer.prompt({ title: '重新命名文本框', formType: 0, value: t }, function(_text, _index) {
                 layer.close(_index);
                 $('#' + thisId + ' .nodeName').text(_text); // 将新值赋值到所点击的元素上
-                // 有个bug，可能需要重新绘制一下图形，不绘制的话可能会无法正确显示锚点
+                $('#' + thisId + ' .nodeName').attr('title', _text); // 将新值赋值到所点击的元素上
             });
         }
     });
 
+    // 监控键盘事件
     $(document).keydown(function (e) {
         // console.log(e.keyCode, e.key); // 键值和键名
         if (e.keyCode === 27) { // 当用户按下esc时清空按钮组的样式
             $('.layui-btn-group .layui-btn').removeClass('layui-btn-primary');
         }
         if (e.ctrlKey && e.keyCode === 86) { // 组合键的判断 Ctrl+v
-            console.log('你按下了ctrl+V');
+            console.log('你按下了ctrl+V，粘贴');
+        }
+        if (e.ctrlKey && e.keyCode === 67) { // 组合键的判断 Ctrl+v
+            console.log('你按下了ctrl+C，复制');
+        }
+        if (e.ctrlKey && e.keyCode === 90) { // 组合键的判断 Ctrl+v
+            console.log('你按下了ctrl+Z，撤销');
         }
         if (e.keyCode === 46) {
-            // delte键 to do
-            // active.del();
+            // delte键 按下时，会删除高亮显示的一个节点
+            var allNode = $('#flow-container').children('.item-shape-node');
+            $.each(allNode, function(i, v) {
+               var nodeClassName = v.className.split(' ');
+               $.each(nodeClassName, function(_i, _v) {
+                   if (_v.indexOf('shape-active') > -1) {
+                       active.del(v.id);
+                   }
+               });
+            });
         }
     });
 
@@ -378,9 +469,10 @@ layui.config({
             var y = e.clientY;
             layer.closeAll();
             var html = '<div class="shape-menu">\
-                            <a href="javascript:;" data-id="' + id +'" data-type="copy">复制节点</a>\
+                            <a href="javascript:;" data-id="' + id +'" data-type="copyNode">复制节点</a>\
                             <a href="javascript:;" data-id="' + id +'" data-type="del">删除节点</a>\
                             <a href="javascript:;" data-id="' + id +'" data-type="editForm">编辑表单</a>\
+                            <a href="javascript:;" data-id="' + id +'" data-type="editNodeName">编辑节点名称</a>\
                         </div>';
             layer.open({
                 title: false,
@@ -392,14 +484,43 @@ layui.config({
                 fixed: false,
                 content: html
             });
-        }else{
-            return false;
         }
+        // 一定要，防止事件冒泡
+        return false;
+    });
+
+    $(document).on('mousedown', '#flow-container', function(e) {
+        var k = e.which, isAddClass = '';
+        if (!$.isArray(tplArr) || tplArr.length <= 0) {
+            // 当存储复制模板的变量数组长度是0时，则需要添加禁止操作的类名
+            isAddClass = 'layui-disabled';
+        }
+        if (3 === k) {
+            layer.closeAll();
+            var x = e.clientX, y = e.clientY;
+            var xy = JSON.stringify([e.offsetX, e.offsetY]); // 获取相对于容器的xy坐标
+            var html = '<div class="shape-menu container-menu">\
+                            <a href="javascript:;" class="' + isAddClass + '" data-xy="' + xy + '" data-type="pasteNode">粘贴节点</a>\
+                            <a href="javascript:;" class="' + isAddClass + '" data-xy="' + xy + '" data-type="clipboard">打开剪贴板</a>\
+                        </div>';
+            layer.open({
+                title: false,
+                closeBtn: 0,
+                type: 1,
+                shade: 0,
+                offset: [y, x],
+                area: ['120px'],
+                fixed: false,
+                content: html
+            });
+        }
+        return false;
     });
 
     // 单击鼠标任何键位，撤销弹出层
     $('div').on('mousedown', function (e) {
         layer.closeAll();
+        $('.item-shape-node').removeClass('shape-active'); // 点击不属于图形节点时撤销高亮样式
     });
 
 });
