@@ -165,7 +165,7 @@
 }
 
 .hexagon_top {
-    width: 50px;
+    /* width: 50px; */
     height: 0;
     border-bottom: 25px solid #9E9E9E;
     border-right: 25px solid transparent;
@@ -173,7 +173,7 @@
 }
 
 .hexagon_bottom {
-    width: 50px;
+    /* width: 50px; */
     height: 0;
     border-top: 25px solid #9E9E9E;
     border-right: 25px solid transparent;

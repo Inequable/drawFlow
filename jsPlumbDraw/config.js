@@ -82,7 +82,7 @@ layui.define(function(exp) {
             //     length: 10,
             //     location: 0.7
             // }],
-            // ['Label', {
+            ['Label', {
             //     label: '', // 文本,这里会使文本重叠
             //     cssClass: 'jsplumb-label', // jsplumb-label
             //     events: {
@@ -90,7 +90,7 @@ layui.define(function(exp) {
             //             // console.log('click on label overlay for :', _labelOverlay.component)
             //         }
             //     }
-            // }]
+            }]
         ]
     };
 

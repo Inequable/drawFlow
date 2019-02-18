@@ -37,6 +37,10 @@
 	cursor: pointer;
 }
 
+.nodeName:hover {
+	color: aqua;
+}
+
 /* jsplump的某些样式自定义 */
 .jsplumb-label {
 	background-color: white;

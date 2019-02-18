@@ -38,6 +38,17 @@
 		position: relative;
 		overflow: auto;
     }
+    .helpText {
+        font-size: 14px;
+    }
+    .lineType a {
+        display: block;
+        color: #ffffff;
+    }
+    .lineType a:hover {
+        color: black;
+        border-bottom: 1px solid #fff;
+    }
     </style>
 </head>
 <body>
@@ -48,7 +59,7 @@
                 <button type="button" class="layui-btn layui-btn-sm" title="保存" data-type="save">
                     <i class="layui-icon">&#xe655;</i>
                 </button>
-                <button type="button" class="layui-btn layui-btn-sm" title="添加节点">
+                <!-- <button type="button" class="layui-btn layui-btn-sm" title="添加节点">
                     <i class="layui-icon">&#xe61f;</i>
                 </button>
                 <button type="button" class="layui-btn layui-btn-sm" title="编辑点击元素">
@@ -56,14 +67,14 @@
                 </button>
                 <button type="button" class="layui-btn layui-btn-sm" title="删除点击元素">
                     <i class="layui-icon">&#xe640;</i>
-                </button>
-                <button type="button" class="layui-btn layui-btn-sm" title="连线">
+                </button> -->
+                <button type="button" class="layui-btn layui-btn-sm" title="连线" data-type="drawLine" id="drawLine">
                     <i class="layui-icon">&#xe674;</i>
                 </button>
-                <button type="button" class="layui-btn layui-btn-sm" title="剪贴板">
+                <button type="button" class="layui-btn layui-btn-sm" title="剪贴板" data-type="clipboard">
                     <i class="layui-icon">&#xe630;</i>
                 </button>
-                <button type="button" class="layui-btn layui-btn-sm" title="提示及帮助">
+                <button type="button" class="layui-btn layui-btn-sm" title="提示及帮助" data-type="help">
                     <i class="layui-icon">&#xe60b;</i>
                 </button>
             </div>
@@ -131,8 +142,35 @@
 </script>
 
 <script type="text/html" id="bar">
-    <a class="layui-btn layui-btn-xs" lay-event="listorder">排序</a>
+    <a class="layui-btn layui-btn-xs" lay-event="pasteTpl">粘贴模板</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+</script>
+
+<script type="text/html" id="helpText">
+    <div class="helpText">
+        <p>1. 顶栏菜单按钮，分别是：保存、连线、剪贴板</p>
+        <p>--1.2. <i style="color: red;">保存</i> 按钮的功能是：当编辑好流程图后，点击保存，程序会保存流程图及关系</p>
+        <p>--1.3. <i style="color: red;">连线</i> 按钮的功能是：用户可以选择几种连线的样式，主要是带标签的，如：<span style="color: green; font-weight: bold;">YES</span>、<span style="color: red; font-weight: bold;">NO</span>、<span style="color: grey; font-weight: bold;">回退/驳回</span>...</p>
+        <p>--1.4. <i style="color: red;">剪贴板</i> 按钮的功能是：将复制的节点放置在这个面板中，用户可以点击想要复制的模板到容器中</p>
+        <p>5. 拖拽到流程图示区节点与流程图示区都有右键菜单功能</p>
+        <p>--5.1. 流程图示区节点右键菜单,分别有：复制节点、删除节点、编辑表单、编辑节点名称</p>
+        <p>----5.1.1. <i style="color: red;">复制节点</i> 的功能是：点击后，程序会将此节点当成模板保存在剪贴板中，等待下一步操作<i style="color: red;">粘贴节点</i></p>
+        <p>----5.1.2. <i style="color: red;">删除节点</i> 的功能是：点击后，程序会将此节点删除</p>
+        <p>----5.1.3. <i style="color: red;">编辑表单</i> 的功能是：未完成...待开发</p>
+        <p>----5.1.4. <i style="color: red;">编辑节点名称</i> 的功能是：可以编辑当前所点击的节点名称，双击节点文本值也可打开编辑</p>
+        <p>--5.2. 流程图示区右键菜单，分别有：粘贴节点、打开剪贴板</p>
+        <p>----5.2.1. <i style="color: red;">粘贴节点</i> 的功能是：右键点击后，程序会在右键点击的地方粘贴一个近期复制过的一个节点</p>
+        <p>----5.2.1. <i style="color: red;">打开剪贴板</i> 的功能是：将复制的节点放置在这个面板中，用户可以点击想要复制的模板到容器中</p>
+    </div>
+</script>
+
+<script type="text/html" id="lineType">
+    <div class="lineType">
+        <a href="javascript:;" data-line="1">正常流程逻辑线</a>
+        <a href="javascript:;" data-line="2">判断流程逻辑线（YES）</a>
+        <a href="javascript:;" data-line="3">判断流程逻辑线（NO）</a>
+        <a href="javascript:;" data-line="4">回退/驳回线</a>
+    </div>
 </script>
 
 <!-- 引入layui的js文件 -->
@@ -148,8 +186,8 @@ layui.config({
     var $ = layui.jquery, laytpl = layui.laytpl, jsPlumb = layui.jsPlumb, draw = layui.draw,
         layer = layui.layer, table = layui.table;
     
-    // 存储复制操作时的临时存储模板变量
-    var tplArr = [];
+    // 存储复制操作时的临时存储模板变量，tplArr -> tplJson ，pasteTpl 是粘贴时的对象有且只有一个
+    var tplArr = [], tplJson = [], pasteTplId = -1;
 
     var fun = {
         mockMakeUUID: function() { // 模拟生成uuid
@@ -249,7 +287,7 @@ layui.config({
         copyNode: function(_id) {
             layer.closeAll();
             // 生成uuid，担有个缺点，多次引用会产生多个不同的uuid，去除clone时产生的多余类名（必须）
-            var h = $('#' + _id).clone().removeClass('ui-droppable ui-draggable ui-draggable-handle');
+            var h = $('#' + _id).clone().removeClass('ui-droppable ui-draggable ui-draggable-handle item-shape-node').removeAttr('id').removeAttr('style');
             // 放进预先定义好的模板数组里
             tplArr.push(h);
             return false;
@@ -257,14 +295,23 @@ layui.config({
         pasteNode: (_id, _xy) => {
             // 粘贴节点
             layer.closeAll();
+            if (!_xy) {
+                _xy = [20, 20];
+            }
             if ($.isArray(tplArr) && tplArr.length > 0) {
-                // 为即将复制的模板节点做一些改变，改变唯一id，和改变定位样式
-                var tpl = tplArr[0].attr('id', fun.guid()).css({'left': _xy[0], 'top': _xy[1]}).show();
+                var tplId = -1;
+                if (pasteTplId > -1) {
+                    tplId = pasteTplId;
+                }else{
+                    tplId = tplArr.length - 1;
+                }
+                // 为即将复制的模板节点做一些改变，改变唯一id，和改变定位样式，总是调用数组中最后一个为粘贴的对象
+                var tpl = tplArr[tplId].attr('id', fun.guid()).css({'left': _xy[0], 'top': _xy[1]}).addClass('item-shape-node');
                 $('#flow-container').append(tpl);
                 // 使新clone的节点能移动和连线，必须从clone的节点获取到id在渲染
                 fun.createPoint2Drop(tpl.attr('id'));
                 // 为避免将模板节点粘贴完以后会出现第二次粘贴时，覆盖第一次的粘贴的节点，导致多次粘贴以后还是只有一个粘贴的节点
-                tplArr[0] =tpl.clone().removeClass('ui-droppable ui-draggable ui-draggable-handle');
+                tplArr[tplId] = tpl.clone().removeClass('ui-droppable ui-draggable ui-draggable-handle item-shape-node').removeAttr('id').removeAttr('style');
             }else{
                 layer.msg('您没有复制任何节点！');
             }
@@ -272,6 +319,12 @@ layui.config({
         },
         clipboard: () => {
             layer.closeAll();
+            // 将复制的模板数组转化成json对象数组
+            tplJson = [];
+            $.each(tplArr, function (i, v) {
+                var json = { id: i, shape: v[0].outerHTML };
+                tplJson.push(json);
+            });
             // 打开剪贴板并操作
             layer.open({
                 title: '剪贴板',
@@ -285,9 +338,7 @@ layui.config({
                     // 渲染剪贴板中的数据
                     table.render({
                         elem: '#table',
-                        data: [ // 需要将tplArr中数组数据对应转化成table中json数据进行回显 to do 
-                            {id: 0, shape: 'ssss'}
-                        ],
+                        data: tplJson, // 将tplArr中数组数据对应转化成table中json数据进行回显
                         page: true,
                         cols: [[
                             {type: 'radio', fixed: 'left'},
@@ -295,8 +346,29 @@ layui.config({
                             {field: 'shape', title: '图形模板', align: 'center'},
                             {title: '操作', toolbar: '#bar', fixed: 'right', align: 'center'}
                         ]],
+                        text: {
+                            none: '暂无相关数据'
+                        }
                     });
                 }
+            });
+            return false;
+        },
+        help: () => {
+            layer.open({
+                title: '<i class="layui-icon layui-icon-help"></i>帮助',
+                shade: 0,
+                offset: '100px',
+                area: ['400px'],
+                fixed: false,
+                btn: [],
+                content: $('#helpText').html()
+            });
+        },
+        drawLine: () => {
+            layer.tips($('#lineType').html(), '#drawLine', {
+                tips: [3, '#00bcd4'],
+                time: 0
             });
         }
     };
@@ -304,12 +376,20 @@ layui.config({
     // 监听table中bar事件
     table.on('tool(table)', function(obj){
         // console.log(obj);
+        var id = obj.data.id;
         switch(obj.event){
-            case 'listorder':
-                layer.msg('listorder');
+            case 'pasteTpl':
+                pasteTplId = id;
+                active.pasteNode();
                 break;
             case 'del':
-                layer.msg('删除');
+                tplArr = [];
+                $.each(tplJson, function(i, v) {
+                    if (v.id !== id) {
+                        tplArr.push($(v.shape));
+                    }
+                });
+                layer.msg('删除成功');
                 break;
         };
         return false;
@@ -396,6 +476,18 @@ layui.config({
         return false;
     });
 
+    $(document).on('click', '.lineType a', () => {
+        var line = $(this).data('line');
+        switch (line) {
+            case '1':
+                draw.config.connectorOverlays[1][1].labe = '';
+                break;
+        
+            default:
+                break;
+        }
+    });
+
     // 单击节点相关事件操作
     $(document).on('click', '#flow-container .item-shape-node', function(e) {
         var nodeId = this.id;
@@ -429,21 +521,30 @@ layui.config({
     // 监控键盘事件
     $(document).keydown(function (e) {
         // console.log(e.keyCode, e.key); // 键值和键名
+        var allNode = $('#flow-container').children('.item-shape-node');
         if (e.keyCode === 27) { // 当用户按下esc时清空按钮组的样式
             $('.layui-btn-group .layui-btn').removeClass('layui-btn-primary');
         }
         if (e.ctrlKey && e.keyCode === 86) { // 组合键的判断 Ctrl+v
-            console.log('你按下了ctrl+V，粘贴');
+            // 会粘贴一个坐标在[100,100]，以容器左上角为原点节点
+            active.pasteNode();
         }
-        if (e.ctrlKey && e.keyCode === 67) { // 组合键的判断 Ctrl+v
-            console.log('你按下了ctrl+C，复制');
+        if (e.ctrlKey && e.keyCode === 67) { // 组合键的判断 Ctrl+c
+            // ctrl+c键 按下时，会copy高亮显示的一个节点
+            $.each(allNode, function (i, v) {
+                var nodeClassName = v.className.split(' ');
+                $.each(nodeClassName, function (_i, _v) {
+                    if (_v.indexOf('shape-active') > -1) {
+                        active.copyNode(v.id);
+                    }
+                });
+            });
         }
         if (e.ctrlKey && e.keyCode === 90) { // 组合键的判断 Ctrl+v
             console.log('你按下了ctrl+Z，撤销');
         }
         if (e.keyCode === 46) {
             // delte键 按下时，会删除高亮显示的一个节点
-            var allNode = $('#flow-container').children('.item-shape-node');
             $.each(allNode, function(i, v) {
                var nodeClassName = v.className.split(' ');
                $.each(nodeClassName, function(_i, _v) {
