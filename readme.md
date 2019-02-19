@@ -37,3 +37,115 @@
 1. 增加快捷键 `Ctrl+C` 和 `Ctrl+V` 的操作，复制粘贴高亮显示的节点到容器中，并且粘贴的节点时距离容器左上角的原点 [20, 20] 的距离
 2. 可以打开剪贴板粘贴任意模板到容器中
 3. 增加选择线的类型，YES、NO、回退/驳回、正常流程的线
+
+2019-2-19
+1. 增加容器右键 `菜单` 中 `编辑节点信息` 的功能
+2. 增加线的连接类型（正常流程逻辑线（与签）、正常流程逻辑线（或签）、判断流程逻辑线（YES）、判断流程逻辑线（NO）、回退/驳回线）
+3. 设计数据库表单
+```
+CREATE TABLE `workflow_step` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `adate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT入与最后一次更新的时间',
+  `flowId` int(11) NOT NULL DEFAULT '0' COMMENT '流程id',
+  `listorder` tinyint(3) NOT NULL DEFAULT '0' COMMENT '整个流程第一步，为1，其余为0',
+  `name` varchar(255) NOT NULL DEFAULT '' COMMENT '步骤名称',
+  `shape` varchar(50) NOT NULL DEFAULT '' COMMENT '图形名称',
+  `top` int(11) NOT NULL DEFAULT '0' COMMENT '定位的top',
+  `left` int(11) NOT NULL DEFAULT '0' COMMENT '定位的left',
+  `operatorType` tinyint(3) NOT NULL DEFAULT '0' COMMENT '操作类型 1->部门 2->人员',
+  `operator` text NOT NULL COMMENT '操作人，一般是以id和逗号分隔',
+  `mark` text COMMENT '备注',
+  `timeout` tinyint(3) NOT NULL DEFAULT '0' COMMENT '操作超时时间 0 无限 单位 时',
+  `itemJson` text COMMENT '步骤表单组合JSON',
+  `status` tinyint(3) NOT NULL DEFAULT '0' COMMENT '状态 -1 删除 0 禁用 1 启用',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='步骤表';
+```
+
+```
+CREATE TABLE `workflow_flow` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `adate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `name` varchar(255) NOT NULL DEFAULT '' COMMENT '流程名称',
+  `type` varchar(100) NOT NULL DEFAULT '' COMMENT '流程类型',
+  `mark` text COMMENT '流程备注信息',
+  `status` tinyint(3) NOT NULL DEFAULT '0' COMMENT '状态 -1 删除 1启用 0禁用 2预存/未发布',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='流程';
+```
+
+```
+CREATE TABLE `workflow_type` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `adate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `name` varchar(100) DEFAULT NULL,
+  `status` tinyint(1) DEFAULT '1',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='流程类型存储表';
+```
+
+```
+CREATE TABLE `workflow_list_step_relation` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `adate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `flowId` int(11) NOT NULL DEFAULT '0' COMMENT '流程ID',
+  `parentStep` int(11) NOT NULL DEFAULT '0' COMMENT '上级步骤ID',
+  `childStep` int(11) NOT NULL DEFAULT '0' COMMENT '子级步骤ID',
+  `relationType` tinyint(3) DEFAULT '1' COMMENT '关联关系 1分发 2判断 3驳回/回退',
+  `relationFlag` tinyint(3) DEFAULT '0' COMMENT '判断条件 1通过 -1 不通过',
+  `relationAndOr` tinyint(3) DEFAULT '0' COMMENT '分发条件 1 或  2 与',
+  `defaultBack` tinyint(3) NOT NULL DEFAULT '1' COMMENT '自动生成回退到上一步的标识，0：需要设置默认回退但不划线，1是需要划线',
+  `status` tinyint(3) DEFAULT '1' COMMENT '1 有效 -1 无效',
+  PRIMARY KEY (`id`),
+  KEY `flowId` (`flowId`,`parentStep`,`childStep`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='流程步骤关系表';
+
+```
+
+```
+CREATE TABLE `workflow_action` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `adate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `demandId` int(11) NOT NULL COMMENT '需求ID',
+  `stepId` int(11) NOT NULL COMMENT '步骤ID',
+  `userId` int(11) DEFAULT NULL COMMENT '用户ID',
+  `actionContentJson` text COMMENT '内容',
+  `actionType` int(5) DEFAULT '0' COMMENT '类型 1领取 2指派 3驳回 4完成 5备注 6派发',
+  `status` tinyint(1) DEFAULT '1' COMMENT '状态',
+  PRIMARY KEY (`id`),
+  KEY `demandId` (`demandId`),
+  KEY `stepId` (`stepId`),
+  KEY `userId` (`userId`,`actionType`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='流程操作表';
+```
+
+```
+CREATE TABLE `workflow_demand` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `adate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `name` varchar(250) NOT NULL,
+  `userId` int(11) NOT NULL COMMENT '发起人',
+  `flowId` int(11) NOT NULL,
+  `level` tinyint(2) DEFAULT '0' COMMENT '0 无优先级 1不重要 2次要 3 普通 4紧急 5 非常紧急',
+  `status` tinyint(2) DEFAULT '1' COMMENT '1 启用 0未启用 -1 删除',
+  `startTime` datetime DEFAULT NULL COMMENT '计划开始时间',
+  `endTime` datetime DEFAULT NULL COMMENT '计划结束时间',
+  PRIMARY KEY (`id`),
+  KEY `flowID` (`flowId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='发布需求表';
+```
+
+```
+CREATE TABLE `workflow_demand_step_user` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `adate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `demandId` int(11) NOT NULL,
+  `flowId` int(11) NOT NULL,
+  `stepId` int(11) NOT NULL,
+  `userId` int(11) NOT NULL,
+  `status` int(11) NOT NULL DEFAULT '0' COMMENT '-1 删除 ',
+  `type` int(5) DEFAULT '0' COMMENT '0 参与者 1 领取 -1 无效',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='需求用户操作的步骤';
+```

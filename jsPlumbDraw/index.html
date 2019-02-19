@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="../jsplumb/flow_design.css">
     <!-- 引入shape的样式 -->
     <link rel="stylesheet" href="../jsPlumbDraw/shape.css">
+    <!-- 引入formSelects多选框样式 -->
+    <link rel="stylesheet" href="../jsPlumbDraw/formSelects-v4.css">
     <style>
     * {
         margin: 0;
@@ -68,7 +70,7 @@
                 <button type="button" class="layui-btn layui-btn-sm" title="删除点击元素">
                     <i class="layui-icon">&#xe640;</i>
                 </button> -->
-                <button type="button" class="layui-btn layui-btn-sm" title="连线" data-type="drawLine" id="drawLine">
+                <button type="button" class="layui-btn layui-btn-sm" title="连线" data-type="drawLineMenu" id="drawLineMenu">
                     <i class="layui-icon">&#xe674;</i>
                 </button>
                 <button type="button" class="layui-btn layui-btn-sm" title="剪贴板" data-type="clipboard">
@@ -131,7 +133,7 @@
 
 <!-- 克隆到流程容器的模板节点 -->
 <script type="text/html" id="shapeNode">
-    <div id="{{ d.id }}" data-shape="{{ d.shape }}" data-json="{{ d.jsonNode }}" style="top: {{ d.top }}px; left: {{ d.left }}px; cursor: Move;" class="item-shape-node {{ d.shape }}_outer">
+    <div id="{{ d.id }}" data-shape="{{ d.shape }}" data-json="{{= JSON.stringify(d) }}" style="top: {{ d.top }}px; left: {{ d.left }}px; cursor: Move;" class="item-shape-node {{ d.shape }}_outer">
         <i class="layui-icon layui-icon-close-fill"></i>
         <div class="{{ d.shape }}_text">
             <span class="nodeName" title="{{ d.name }}">{{ d.name }}</span>
@@ -166,11 +168,71 @@
 
 <script type="text/html" id="lineType">
     <div class="lineType">
-        <a href="javascript:;" data-line="1">正常流程逻辑线</a>
+        <a href="javascript:;" data-line="1">正常流程逻辑线（与签）</a>
+        <a href="javascript:;" data-line="5">或签</a>
         <a href="javascript:;" data-line="2">判断流程逻辑线（YES）</a>
         <a href="javascript:;" data-line="3">判断流程逻辑线（NO）</a>
         <a href="javascript:;" data-line="4">回退/驳回线</a>
     </div>
+</script>
+
+<script type="text/html" id="nodeInfo">
+    <form action="" onsubmit="return false;" class="layui-form layui-form-pane" lay-filter="logic-form" style="padding: 30px 30px 0;">
+        <input type="hidden" name="id" value="">
+        <input type="hidden" name="flowId" value="">
+        <fieldset class="layui-elem-field layui-field-title">
+            <legend style="font-size: 14px;font-weight: bold">步骤信息</legend>
+        </fieldset>
+        <div class="layui-form-item">
+            <label class="layui-form-label">名称</label>
+            <div class="layui-input-block">
+                <input name="name" placeholder="请输入名称" lay-verify="required" class="layui-input" value="" autocomplete="off" />
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">操作所属</label>
+            <div class="layui-input-block">
+                <select name="operatorType" id="operatorType" lay-verify="required" lay-filter="operatorType">
+                    <option value="">请选择</option>
+                    <option value="1">部门</option>
+                    <option value="2">人员</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">操作人/部门</label>
+            <div class="layui-input-block">
+                <select name="operator" id="operator" lay-verify="required" xm-select="operator" xm-select-search=""
+                    lay-filter="operator" xm-select-height="36px">
+                    <option value="2">人员</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">超时时间</label>
+            <div class="layui-input-inline">
+                <input name="timeout" placeholder="请输入超时时间" lay-verify="required" class="layui-input" value="0"
+                    autocomplete="off" />
+            </div>
+            <div class="layui-form-mid layui-word-aux"> 0 为不超时，单位为 h （时）</div>
+        </div>
+        <div class="layui-form-item" pane>
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-block">
+                <input type="checkbox" name="status" lay-skin="switch" lay-text="启用|禁用" checked>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">备注：</label>
+            <div class="layui-input-block">
+                <textarea placeholder="请输入备注" class="layui-textarea" name="mark"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item" align="center">
+            <button class="layui-btn layui-btn-sm" lay-filter="saveConfig" lay-submit>保存此步骤配置</button>
+            <button type="reset" class="layui-btn layui-btn-sm layui-btn-primary">重置</button>
+        </div>
+    </form>
 </script>
 
 <!-- 引入layui的js文件 -->
@@ -182,9 +244,10 @@ layui.config({
     jqui: '/drawFlow/jsplumb/jQueryUI.min',
     jsPlumb: '/drawFlow/jsplumb/jquery_jsplumb_forlayui.min',
     draw: '/drawFlow/jsPlumbDraw/config',
-}).use(['laytpl', 'layer', 'jsPlumb', 'jqui', 'draw', 'table'], function() {
-    var $ = layui.jquery, laytpl = layui.laytpl, jsPlumb = layui.jsPlumb, draw = layui.draw,
-        layer = layui.layer, table = layui.table;
+    formSelects: '/drawFlow/jsPlumbDraw/formSelects-v4.min'
+}).use(['laytpl', 'layer', 'jsPlumb', 'jqui', 'draw', 'table', 'formSelects', 'element', 'form'], function() {
+    var $ = layui.jquery, laytpl = layui.laytpl, jsPlumb = layui.jsPlumb, draw = layui.draw, form = layui.form,
+        layer = layui.layer, table = layui.table, formSelects = layui.formSelects, element = layui.element;
     
     // 存储复制操作时的临时存储模板变量，tplArr -> tplJson ，pasteTpl 是粘贴时的对象有且只有一个
     var tplArr = [], tplJson = [], pasteTplId = -1;
@@ -220,7 +283,8 @@ layui.config({
                 },
             }, draw.config);
             jsPlumb.draggable(_uuid, {
-                containment: "parent"
+                containment: "parent",
+                // grid: [5, 5]
             });
         },
         cloneShapeNode: () => {
@@ -233,10 +297,10 @@ layui.config({
                 drop: function (_event, _ui) {
                     var data = {
                         shape: _ui.helper.data('shape'),
-                        name: _ui.helper.text(),
+                        name: _ui.helper.text().replace(/(^\s*)|(\s*$)/g, ""),
                         top: _ui.position.top,
                         left: _ui.position.left - $('.layui-col-md3').outerWidth(),
-                        jsonNode: []
+                        itemJson: {}
                     };
                     fun.renderShapeNode(data);
                 }
@@ -277,7 +341,7 @@ layui.config({
         editNodeName: function(_id) {
             layer.closeAll();
             // 查找到相关节点的nodeName的文本，并将前后的空格去掉
-            var t = $('#' + _id).find('.nodeName').text().replace(/(^\s*)|(\s*$)/g, "");;
+            var t = $('#' + _id).find('.nodeName').text().replace(/(^\s*)|(\s*$)/g, "");
             layer.prompt({ title: '重新命名文本框', formType: 0, value: t }, function(_text, _index) {
                 layer.close(_index);
                 $('#' + _id + ' .nodeName').text(_text); // 将新值赋值到所点击的元素上
@@ -365,13 +429,51 @@ layui.config({
                 content: $('#helpText').html()
             });
         },
-        drawLine: () => {
-            layer.tips($('#lineType').html(), '#drawLine', {
+        drawLineMenu: () => {
+            layer.tips($('#lineType').html(), '#drawLineMenu', {
                 tips: [3, '#00bcd4'],
                 time: 0
             });
+        },
+        nodeInfo: (_id) => {
+            layer.closeAll();
+            // 根据id获取到当前节点的json数据，方便表单进行数据回显
+            var json = $('#' + _id).data('json');
+            layer.open({
+                title: false,
+                // closeBtn: 0,
+                type: 1,
+                btn: [],
+                offset: '100px',
+                shade: 0,
+                area: '50%',
+                fixed: false,
+                content: $('#nodeInfo').html(),
+                success: (index, layero) => {
+                    form.val('logic-form', json); // 表单数据回显操作
+                    formSelects.render(); // 渲染formSelects插件
+                    form.render(); // 渲染表单
+                }
+            });
         }
     };
+
+    // 监听提交步骤表单信息
+    form.on('submit(saveConfig)', function (_data) {
+        var field = _data.field, json = {};
+        if (field.status === 'on') {
+            field.status = 1;
+        }
+        if (field.status === undefined) {
+            field.status = 0;
+        }
+        json = $.extend(true, $('#' + field.id).data('json'), field); // 深度合并两个对象数据
+        $('#' + field.id).data('json', json); // 重新赋值会图形的data-json值
+        $('#' + field.id + ' .nodeName').text(field.name); // 将新值赋值到nodeName的元素上
+        $('#' + field.id + ' .nodeName').attr('title', field.name); // 将新值赋值到nodeName的元素上
+        layer.closeAll();
+        return false;
+    });
 
     // 监听table中bar事件
     table.on('tool(table)', function(obj){
@@ -445,7 +547,7 @@ layui.config({
             $.each(connInfo, function(i, v) {
                 // 防止两个节点回环，如：1-2 变成 2-1
                 var s = v.sourceId, t = v.targetId;
-                if (_info.sourceId === t && _info.targetId === s) {
+                if ((_info.sourceId === t && _info.targetId === s) || (_info.sourceId === s && _info.targetId === t)) {
                     b = 0;
                     return false;
                 }
@@ -476,16 +578,42 @@ layui.config({
         return false;
     });
 
-    $(document).on('click', '.lineType a', () => {
+    $(document).on('click', '.lineType a', function() {
         var line = $(this).data('line');
         switch (line) {
-            case '1':
-                draw.config.connectorOverlays[1][1].labe = '';
+            case 1:
+                draw.config.connectorOverlays[1][1] = {};
                 break;
-        
+            case 2:
+                draw.config.connectorOverlays[1][1] = {
+                    label: 'YES',
+                    cssClass: 'jsplumb-label'
+                };
+                break;
+            case 3:
+                draw.config.connectorOverlays[1][1] = {
+                    label: 'NO',
+                    cssClass: 'jsplumb-label'
+                };
+                break;
+            case 4:
+                draw.config.connectorOverlays[1][1] = {
+                    label: '回退/驳回',
+                    cssClass: 'jsplumb-label'
+                };
+                break;
+            case 5:
+                draw.config.connectorOverlays[1][1] = {
+                    label: '或签',
+                    cssClass: 'jsplumb-label'
+                };
+                break;
             default:
+                draw.config.connectorOverlays[1][1] = {};
                 break;
         }
+        layer.closeAll();
+        return false;
     });
 
     // 单击节点相关事件操作
@@ -570,10 +698,11 @@ layui.config({
             var y = e.clientY;
             layer.closeAll();
             var html = '<div class="shape-menu">\
-                            <a href="javascript:;" data-id="' + id +'" data-type="copyNode">复制节点</a>\
-                            <a href="javascript:;" data-id="' + id +'" data-type="del">删除节点</a>\
-                            <a href="javascript:;" data-id="' + id +'" data-type="editForm">编辑表单</a>\
-                            <a href="javascript:;" data-id="' + id +'" data-type="editNodeName">编辑节点名称</a>\
+                            <a href="javascript:;" data-id="' + id + '" data-type="copyNode">复制节点</a>\
+                            <a href="javascript:;" data-id="' + id + '" data-type="del">删除节点</a>\
+                            <a href="javascript:;" data-id="' + id + '" data-type="editForm">编辑表单</a>\
+                            <a href="javascript:;" data-id="' + id + '" data-type="editNodeName">编辑节点名称</a>\
+                            <a href="javascript:;" data-id="' + id + '" data-type="nodeInfo">编辑节点信息</a>\
                         </div>';
             layer.open({
                 title: false,

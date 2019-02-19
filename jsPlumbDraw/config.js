@@ -59,7 +59,8 @@ layui.define(function(exp) {
             stroke: 'blue'
         }, // 连接线端点悬停样式
         isSource: true, // 是否可以拖动（作为连线起点）
-        connector: ['Flowchart', {
+        connector: ["Flowchart", {
+            stub: [0, 0],
             gap: 10,
             cornerRadius: 5,
             alwaysRespectStubs: true
