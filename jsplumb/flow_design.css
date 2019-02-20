@@ -52,9 +52,9 @@
 ._jsPlumb_hover {
 	z-index: 100;
 }
-._jsPlumb_connector {
+/* ._jsPlumb_connector {
 	z-index: 10;
-}
+} */
 ._jsPlumb_endpoint {
 	z-index: 10;
 }
