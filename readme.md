@@ -162,4 +162,14 @@ CREATE TABLE `workflow_demand_step_user` (
 2. 删除的节点需要做记录
 3. 数据回显作图时，要区别新的节点和线
 4. 需要做一些数据缓存，可以有些页面跳转需要用localStrong
+（全完成）
 
+2019-2-21
+1. 增加一些提示性文本，如：复制（提示：节点已复制）
+2. 调整一下代码的位置
+3. 数据回显作图完成
+4. 将连线后线数据信息放置在 parameters 参数中，可以方便取用，以及判断
+5. 删除的线和节点都记录下来了
+
+注意:
+1. 前端静态数据回显绘图没问题，后台数据回显绘图有问题，报：Uncaught TypeError: Cannot read property 'add' of undefined

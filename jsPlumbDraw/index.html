@@ -251,6 +251,21 @@ layui.config({
 }).use(['laytpl', 'layer', 'jsPlumb', 'jqui', 'draw', 'table', 'formSelects', 'element', 'form'], function() {
     var $ = layui.jquery, laytpl = layui.laytpl, jsPlumb = layui.jsPlumb, draw = layui.draw, form = layui.form,
         layer = layui.layer, table = layui.table, formSelects = layui.formSelects, element = layui.element;
+
+    // 用于存储或获取本地数据的变量，字符串的数组'[edges, nodes]';
+    var storage_items = localStorage.getItem('storage_items') ? JSON.parse(localStorage.getItem('storage_items')) : '';
+    // 记录删除节点的信息id，字符串数组'[edgeIds, nodeIds]'
+    var storage_delIds = localStorage.getItem('storage_delIds') ? JSON.parse(localStorage.getItem('storage_delIds')) : '',
+        nodeIds = [], edgeIds = [];
+
+    if (typeof (Storage) === "undefined") {
+        var msg = '对不起，您的浏览器不支持本地存储数据，请使用 Internet Explorer 8以上 的主流浏览器访问，如：Firefox, Opera, Chrome...';
+        layer.msg(msg, function () {
+            // history.back(-1);
+            return false;
+        });
+    }
+    console.log(storage_items, storage_delIds);
     
     // 存储复制操作时的临时存储模板变量，tplArr -> tplJson ，pasteTpl 是粘贴时的对象有且只有一个
     var tplArr = [], tplJson = [], pasteTplId = -1;
@@ -264,10 +279,17 @@ layui.config({
                     + fun.mockMakeUUID() + "-" + fun.mockMakeUUID() + fun.mockMakeUUID() + fun.mockMakeUUID());
         },
         renderShapeNode: (_data) => {
-            var uuid = fun.guid();
-            var data = $.extend(true, {
-                id: uuid
-            }, _data);
+            var uuid, data;
+            // 判断传过来的数据_data数据是否存在id这一属性
+            if (_data.id === undefined) {
+                uuid = fun.guid();
+                data = $.extend(true, {
+                    id: uuid
+                }, _data);
+            }else{ // 如果存在，那说明是重绘图，则不需要重新定义uuid
+                data = _data;
+                uuid = _data.id;
+            }
             laytpl($('#shapeNode').html()).render(data, function(_html) {
                 $('#flow-container').append(_html);
             });
@@ -276,7 +298,7 @@ layui.config({
         createPoint2Drop: (_uuid) => {
             jsPlumb.makeSource(_uuid, {
                 anchor: [[0.2, 0, 0, 0], "Top", "Right", "Bottom", "Left", "BottomLeft", /*"TopRight",*/ "TopLeft", "BottomRight"], // 可以使用 Continuous 属性，产生锚点位置
-                allowLoopback: false, //禁止回环
+                // allowLoopback: false, //禁止回环
                 filter: function (_ev, _ele) {
                     var tar = _ev.target.tagName;
                     if (tar === 'SPAN' || tar === 'I') {
@@ -308,11 +330,64 @@ layui.config({
                     fun.renderShapeNode(data);
                 }
             });
+        },
+        drawLine: (_edge) => {
+            // 这个是重绘图的画线，系统绘线
+            if (!_edge || !$.isPlainObject(_edge)) {
+                layer.msg('线的数据源不存在');
+                return false;
+            }
+            jsPlumb.makeTarget(_edge.childStep, {
+                anchor: [[0.2, 0, 0, 0], "Top", "Right", "Bottom", "Left", "BottomLeft", /*"TopRight",*/ "TopLeft", "BottomRight"],
+                allowLoopback: false,
+            }, draw.config);
+            var comm = {
+                overlays: [
+                    ["Arrow", { location: 1, width: 10, length: 10 }],
+                    ['Label', {}]
+                ]
+            };
+            if (_edge.relationType == '1') {
+                if (_edge.relationAndOr == '1') {
+                    comm.overlays[1] = ['Label', {
+                        label: '或签',
+                        cssClass: 'jsplumb-label',
+                    }];
+                }else if(_edge.relationAndOr == '2') {
+                    comm.overlays[1] = ['Label', {}];
+                }
+            }else if (_edge.relationType == '2') {
+                if (_edge.relationFlag == '1') {
+                    comm.overlays[1] = ['Label', {
+                        label: 'YES',
+                        cssClass: 'jsplumb-label',
+                    }];
+                } else if (_edge.relationFlag == '-1') {
+                    comm.overlays[1] = ['Label', {
+                        label: 'NO',
+                        cssClass: 'jsplumb-label',
+                    }];
+                }
+            } else if (_edge.relationType == '3') {
+                comm.overlays[1] = ['Label', {
+                    label: 'NO',
+                    cssClass: 'jsplumb-label',
+                }];
+            }
+            jsPlumb.connect({
+                source: _edge.parentStep,
+                target: _edge.childStep,
+                parameters: _edge, // 将线的数据都存储在这个属性中
+            }, comm);
         }
     };
 
     var active = {
         delNode: function(_nodeId) {
+            var r = /([a-zA-Z]+[0-9]+|[0-9]+[a-zA-Z])/;
+            if (!r.exec(_nodeId)) { // 检测id如果不是数字字母混合而成的，那就是数据库的主键id了
+                nodeIds.push(_nodeId); // 记录在库，提交到后台时，方便删除无用节点
+            }
             jsPlumb.remove(_nodeId);
         },
         save: function() {
@@ -379,7 +454,9 @@ layui.config({
             if (!active.findFirstStep(edgesArr, nodesArr)) {
                 return false;
             }
-            console.log(edgesArr, nodesArr);
+            // console.log(edgesArr, nodesArr);
+            localStorage.setItem('storage_items', JSON.stringify([edgesArr, nodesArr]));
+            localStorage.setItem('storage_delIds', JSON.stringify([edgeIds, nodeIds]));
         },
         editForm: function() {
             layer.closeAll();
@@ -420,6 +497,7 @@ layui.config({
             var h = $('#' + _id).clone().removeClass('ui-droppable ui-draggable ui-draggable-handle item-shape-node').removeAttr('id').removeAttr('style');
             // 放进预先定义好的模板数组里
             tplArr.push(h);
+            layer.msg('节点已复制');
             return false;
         },
         pasteNode: (_id, _xy) => {
@@ -610,10 +688,10 @@ layui.config({
                             if (!active.isReasonable()) {
                                 return false;
                             }
-                            // localStorage.setItem('items', JSON.stringify(ims));
-                            // localStorage.setItem('delId', JSON.stringify({ nodeIds: nodeIds, edgeIds: edgeIds }));
+                            localStorage.setItem('storage_items', JSON.stringify([_edges, _nodes]));
+                            localStorage.setItem('storage_delIds', JSON.stringify([edgeIds, nodeIds]));
                             // history.back(-1);
-                            console.log(_edges, _nodes);
+                            // console.log(_edges, _nodes);
                             layer.close(_index);
                         } else {
                             layer.msg('请选择指定的第一步');
@@ -656,66 +734,6 @@ layui.config({
         }
     };
 
-    // 监听提交步骤表单信息
-    form.on('submit(saveConfig)', function (_data) {
-        var field = _data.field, json = {};
-        if (field.status === 'on') {
-            field.status = 1;
-        }
-        if (field.status === undefined) {
-            field.status = 0;
-        }
-        json = $.extend(true, $('#' + field.id).data('json'), field); // 深度合并两个对象数据
-        $('#' + field.id).data('json', json); // 重新赋值会图形的data-json值
-        $('#' + field.id + ' .nodeName').text(field.name); // 将新值赋值到nodeName的元素上
-        $('#' + field.id + ' .nodeName').attr('title', field.name); // 将新值赋值到nodeName的元素上
-        layer.closeAll();
-        return false;
-    });
-
-    // 监听table中bar事件
-    table.on('tool(table)', function(obj){
-        // console.log(obj);
-        var id = obj.data.id;
-        switch(obj.event){
-            case 'pasteTpl':
-                pasteTplId = id;
-                active.pasteNode();
-                break;
-            case 'del':
-                tplArr = [];
-                $.each(tplJson, function(i, v) {
-                    if (v.id !== id) {
-                        tplArr.push($(v.shape));
-                    }
-                });
-                layer.msg('删除成功');
-                break;
-        };
-        return false;
-    });
-
-    // 单击按钮触发事件
-    $('.layui-btn').on('click', function(e) {
-        var type = $(this).data('type');
-        if (active[type]) {
-            active[type].call(this, e);
-        }
-    });
-
-    // 点击图形菜单时触发的事件
-    $(document).on('click', '.shape-menu a', function() {
-        var type = $(this).data('type'), id = $(this).data('id'), xy = $(this).data('xy');
-        if (this.className.indexOf('layui-disabled') > -1) {
-            // 如果点击的菜单有layui-disable这个类名的话，无法触发当前点击的方法
-            return false;
-        }
-        if (active[type]) {
-            active[type].call(this, id, xy);
-        }
-        return false;
-    });
-
     jsPlumb.ready(function() {
         jsPlumb.setContainer('flow-container'); // 设置画布容器节点
         fun.cloneShapeNode();
@@ -733,10 +751,52 @@ layui.config({
     });
 
     // 连线后触发的事件
-    // jsPlumb.bind("connection",function(_info){
-    //     console.log(_info);
-    // });
-    
+    jsPlumb.bind("connection",function(_info){
+        var conn = _info.connection;
+        var label = conn.canvas.nextSibling ? conn.canvas.nextSibling.innerText : '';
+        var relationType = 0, relationFlag = 0, relationAndOr = 0;
+        switch (label) {
+            case '或签':
+                relationType = 1;
+                relationAndOr = 1;
+                break;
+            case '':
+                relationType = 1;
+                relationAndOr = 2;
+                break;
+            case 'YES':
+                relationType = 2;
+                relationFlag = 1;
+                break;
+            case 'NO':
+                relationType = 2;
+                relationFlag = -1;
+                break;
+            case '回退/驳回':
+                relationType = 3;
+                break;
+            default:
+                break;
+        }
+        // 将连线信息整理好后，放置在Parameters参数中
+        conn.setParameters({
+            parentStep: conn.sourceId,
+            childStep: conn.targetId,
+            relationType,
+            relationFlag,
+            relationAndOr,
+        });
+    });
+
+    // 监听当连接断掉时的事件
+    jsPlumb.bind('connectionDetached', (_info) => {
+        var conn = _info.connection;
+        var edgeInfo = conn.getParameters();
+        if (edgeInfo.id !== undefined && edgeInfo.id) { // 如果线的id存在且不为空，则将其放入预先定义好的变量数组中
+            edgeIds.push(edgeInfo.id); // 存储的数据主要用于后台删除无用的连接关系
+        }
+    });
+
     // 连接前的检查，判断是否建立连接
     jsPlumb.bind('beforeDrop', function (_info) {
         // 获取所有的连线信息
@@ -760,6 +820,84 @@ layui.config({
         }else{
             return true;
         }
+    });
+
+    if (storage_items && $.isArray(storage_items)) {
+        // 如果有，存储的状态应该是，[0]是edges,[1]nodes；都是数组
+        if (storage_items[1] !== undefined && $.isArray(storage_items[1])) {
+            $.each(storage_items[1], (i, v) => {
+                fun.renderShapeNode(v);
+            });
+        }
+        // 顺序很重要，要先渲染节点，再连线
+        if (storage_items[0] !== undefined && $.isArray(storage_items[0])) {
+            $.each(storage_items[0], (i, v) => {
+                fun.drawLine(v);
+            });
+        }
+    }
+    // 清除本地缓存数据
+    // localStorage.removeItem('storage_items');
+    // localStorage.removeItem('storage_delIds');
+
+    // 监听提交步骤表单信息
+    form.on('submit(saveConfig)', function (_data) {
+        var field = _data.field, json = {};
+        if (field.status === 'on') {
+            field.status = 1;
+        }
+        if (field.status === undefined) {
+            field.status = 0;
+        }
+        json = $.extend(true, $('#' + field.id).data('json'), field); // 深度合并两个对象数据
+        $('#' + field.id).data('json', json); // 重新赋值会图形的data-json值
+        $('#' + field.id + ' .nodeName').text(field.name); // 将新值赋值到nodeName的元素上
+        $('#' + field.id + ' .nodeName').attr('title', field.name); // 将新值赋值到nodeName的元素上
+        layer.closeAll();
+        return false;
+    });
+
+    // 监听table中bar事件
+    table.on('tool(table)', function (obj) {
+        // console.log(obj);
+        var id = obj.data.id;
+        switch (obj.event) {
+            case 'pasteTpl':
+                pasteTplId = id;
+                active.pasteNode();
+                break;
+            case 'del':
+                tplArr = [];
+                $.each(tplJson, function (i, v) {
+                    if (v.id !== id) {
+                        tplArr.push($(v.shape));
+                    }
+                });
+                layer.msg('删除成功');
+                break;
+        };
+        return false;
+    });
+
+    // 单击按钮触发事件
+    $('.layui-btn').on('click', function (e) {
+        var type = $(this).data('type');
+        if (active[type]) {
+            active[type].call(this, e);
+        }
+    });
+
+    // 点击图形菜单时触发的事件
+    $(document).on('click', '.shape-menu a', function () {
+        var type = $(this).data('type'), id = $(this).data('id'), xy = $(this).data('xy');
+        if (this.className.indexOf('layui-disabled') > -1) {
+            // 如果点击的菜单有layui-disable这个类名的话，无法触发当前点击的方法
+            return false;
+        }
+        if (active[type]) {
+            active[type].call(this, id, xy);
+        }
+        return false;
     });
 
     // 操作按钮组的功能组
