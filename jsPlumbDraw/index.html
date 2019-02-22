@@ -370,7 +370,7 @@ layui.config({
                 }
             } else if (_edge.relationType == '3') {
                 comm.overlays[1] = ['Label', {
-                    label: 'NO',
+                    label: '回退/驳回',
                     cssClass: 'jsplumb-label',
                 }];
             }
@@ -717,7 +717,7 @@ layui.config({
             $.each(_nodes, function (_i, _v) {
                 var j = 0, b = 1;
                 $.each(_edges, function (_in, _va) {
-                    if (_v.id === _va.source) {
+                    if (_v.id === _va.parentStep) {
                         if (_va.relationType == '2' && (_va.relationFlag == '1' || _va.relationFlag == '-1')) {
                             j++;
                             b = 0;
@@ -745,6 +745,31 @@ layui.config({
                 layer.msg('你已取消删除此连线操作');
             });
 		});
+
+        // 将重新绘图的这部分代码放入 jsPlumb.ready 减少代码运行时报错的几率
+        if (storage_items && $.isArray(storage_items)) {
+            // 如果有，存储的状态应该是，[0]是edges,[1]nodes；都是数组
+            if (storage_items[1] !== undefined && $.isArray(storage_items[1])) {
+                $.each(storage_items[1], (i, v) => {
+                    fun.renderShapeNode(v);
+                });
+            }
+            // 顺序很重要，要先渲染节点，再连线
+            if (storage_items[0] !== undefined && $.isArray(storage_items[0])) {
+                $.each(storage_items[0], (i, v) => {
+                    try { // 捕捉异常，处理可能出现的的报错
+                        fun.drawLine(v);
+                    } catch (error) {
+                        console.info(error);
+                        layer.msg('绘图不成功，请重新刷新！');
+                        return false;
+                    }
+                });
+            }
+        }
+    // 清除本地缓存数据
+    // localStorage.removeItem('storage_items');
+    // localStorage.removeItem('storage_delIds');
     });
     jsPlumb.importDefaults({
         ConnectionsDetachable: false // 是否拖动锚点断开连接
@@ -778,14 +803,17 @@ layui.config({
             default:
                 break;
         }
-        // 将连线信息整理好后，放置在Parameters参数中
-        conn.setParameters({
-            parentStep: conn.sourceId,
-            childStep: conn.targetId,
-            relationType,
-            relationFlag,
-            relationAndOr,
-        });
+        // 判断是回显的绘图数据还是重新手工添加的数据，如果是空对象，那么需要重新设置Parameters进去
+        if ($.isEmptyObject(conn.getParameters())) {
+            // 将连线信息整理好后，放置在Parameters参数中
+            conn.setParameters({
+                parentStep: conn.sourceId,
+                childStep: conn.targetId,
+                relationType,
+                relationFlag,
+                relationAndOr,
+            });
+        }
     });
 
     // 监听当连接断掉时的事件
@@ -821,24 +849,6 @@ layui.config({
             return true;
         }
     });
-
-    if (storage_items && $.isArray(storage_items)) {
-        // 如果有，存储的状态应该是，[0]是edges,[1]nodes；都是数组
-        if (storage_items[1] !== undefined && $.isArray(storage_items[1])) {
-            $.each(storage_items[1], (i, v) => {
-                fun.renderShapeNode(v);
-            });
-        }
-        // 顺序很重要，要先渲染节点，再连线
-        if (storage_items[0] !== undefined && $.isArray(storage_items[0])) {
-            $.each(storage_items[0], (i, v) => {
-                fun.drawLine(v);
-            });
-        }
-    }
-    // 清除本地缓存数据
-    // localStorage.removeItem('storage_items');
-    // localStorage.removeItem('storage_delIds');
 
     // 监听提交步骤表单信息
     form.on('submit(saveConfig)', function (_data) {

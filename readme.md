@@ -173,3 +173,7 @@ CREATE TABLE `workflow_demand_step_user` (
 
 注意:
 1. 前端静态数据回显绘图没问题，后台数据回显绘图有问题，报：Uncaught TypeError: Cannot read property 'add' of undefined
+
+2019-2-22
+1. 减少重新绘图时，出现代码报错的几率（主要会报错还是出现在后端数据回显时，线无法正常重绘）
+2. 修改判断是回显的绘图数据还是重新手工添加的数据，如果是空对象（ $.isEmptyObject(conn.getParameters()) ），那么需要重新设置Parameters（ conn.setParameters({ }) ）进去，连线后的逻辑
