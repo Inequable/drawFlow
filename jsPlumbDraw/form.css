@@ -1,0 +1,79 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+.layui-fluid {
+    padding: 5px;
+}
+
+.layui-card {
+    border: 1px solid #eeeeee;
+}
+
+.layui-card-header {
+    border-bottom: 1px solid #5FB878;
+}
+
+#form-container {
+    min-height: 10px;
+}
+
+.form-edit-widget {
+    overflow: hidden;
+}
+
+.form-edit-widget-label {
+    background-color: #f4f6fc;
+    height: 30px;
+    line-height: 30px;
+    box-sizing: border-box;
+    padding: 0 20px;
+    margin: 2px;
+    width: 47%;
+    float: left;
+    border: 1px solid #f4f6fc;
+    font-size: 12px;
+    color: #666;
+}
+
+.form-edit-widget-label:hover {
+    color: #409eff;
+    border: 1px dashed #409eff;
+    cursor: pointer;
+}
+
+.form-edit-comm {
+    width: 95%;
+    padding-top: 15px;
+    padding-right: 10px;
+    cursor: move;
+    padding-bottom: 15px;
+}
+
+.form-edit-comm:hover {
+    background-color: #b3d8ff;
+}
+
+.form-edit-comm-active {
+    border-left: 5px solid #409eff;
+    background: #b3d8ff;
+}
+
+.form-edit-comm * {
+    cursor: move;
+}
+
+.form-attr-container {
+    overflow: hidden;
+}
+
+.form-edit-slider {
+    padding-top: 16px;
+}
+
+.form-edit-gridLayout {
+    height: 50px;
+    border: 1px dashed #409eff;
+    overflow: hidden;
+}

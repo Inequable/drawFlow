@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>表单设计器--自定义表单</title>
+    <!-- 引入layui的主要样式表 -->
+    <link rel="stylesheet" href="../layui/css/layui.css">
+    <!-- 引入formSelects多选框样式 -->
+    <link rel="stylesheet" href="../jsPlumbDraw/formSelects-v4.css">
+    <!-- 引入jQueryUI的样式表 -->
+    <link rel="stylesheet" href="../jsplumb/jquery-ui.min.css">
+    <!-- 引入form表单设计器的样式 -->
+    <link rel="stylesheet" href="form.css">
+</head>
+
+<body>
+    <div class="layui-fluid">
+        <div class="layui-row layui-col-space10">
+            <div class="layui-col-md2">
+                <div class="layui-card">
+                    <div class="layui-card-header">表单字段类型</div>
+                    <div class="layui-card-body">
+                        <!-- 放置表单字段类型 -->
+                        <fieldset class="layui-elem-field layui-field-title">
+                            <legend style="font-size: 14px;font-weight: bold;color: #666666;">基础字段</legend>
+                        </fieldset>
+                        <ul class="form-edit-widget">
+                            <li class="layui-elip form-edit-widget-label" data-form="text">单行文本</li>
+                            <li class="layui-elip form-edit-widget-label" data-form="password">密码文本</li>
+                            <li class="layui-elip form-edit-widget-label" data-form="textarea">多行文本</li>
+                            <li class="layui-elip form-edit-widget-label" data-form="select">下拉选择框</li>
+                            <li class="layui-elip form-edit-widget-label" data-form="checkbox">复选框</li>
+                            <li class="layui-elip form-edit-widget-label" data-form="radio">单选按钮</li>
+                            <li class="layui-elip form-edit-widget-label" data-form="on-off">开关</li>
+                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-date" data-form="datetime">时间选择器</li>
+                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-theme" data-form="colorpicker">颜色选择器</li>
+                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-slider" data-form="slider">滑块</li>
+                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-rate-solid" data-form="rate">评分</li>
+                        </ul>
+                        <fieldset class="layui-elem-field layui-field-title">
+                            <legend style="font-size: 14px;font-weight: bold;color: #666666;">高级字段</legend>
+                        </fieldset>
+                        <ul class="form-edit-widget">
+                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-file" data-form="upload">上传文件</li>
+                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-fonts-clear" data-form="editor">富文本编辑器</li>
+                        </ul>
+                        <fieldset class="layui-elem-field layui-field-title">
+                            <legend style="font-size: 14px;font-weight: bold;color: #666666;">布局字段</legend>
+                        </fieldset>
+                        <ul class="form-edit-widget">
+                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-app" data-form="gridLayout">栅格布局</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-md7">
+                <div class="layui-card">
+                    <div class="layui-card-header">自定义的表单集</div>
+                    <div class="layui-card-body">
+                        <div class="form-container layui-form" id="form-container">
+                            <!-- 放置自定义的表单集的容器 -->
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-col-md3">
+                <div class="layui-card">
+                    <div class="layui-card-header">属性设置</div>
+                    <div class="layui-card-body">
+                        <div class="form-attr-container">
+                            <!-- 放置自定义的表单集属性设置的容器 -->
+                            <div class="layui-tab layui-tab-brief" lay-filter="tabBrief">
+                                <ul class="layui-tab-title">
+                                    <li class="layui-this">字段属性</li>
+                                    <li>表单属性</li>
+                                </ul>
+                                <div class="layui-tab-content">
+                                    <div class="layui-tab-item layui-show">
+                                        <form action="" method="POST" onsubmit="return false;" class="layui-form layui-form-pane">
+                                        </form>
+                                    </div>
+                                    <div class="layui-tab-item">内容2</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- 表单模板 -->
+<script type="text/html" id="formTpl">
+<div class="form-edit-comm" id="{{ d.id }}" data-json="{{= JSON.stringify(d) }}">
+    {{# if(d.type != 'gridLayout'){ }}
+    <div class="layui-form-item">
+        <label class="layui-form-label">{{ d.label }}</label>
+        <div class="layui-input-block">{{ d.widgetHtml }}</div>
+    </div>
+    {{# }else{ }}
+    {{ d.widgetHtml }}
+    {{# } }}
+</div>
+</script>
+
+<!-- 引入layui的js文件 -->
+<script src="../layui/layui.js"></script>
+<script>
+layui.config({
+    base: 'file:///D:/' // 配置layui第三方插件存放的基础路径，自由更改
+}).extend({
+    jqui: '/drawFlow/jsplumb/jQueryUI.min',
+    formSelects: '/drawFlow/jsPlumbDraw/formSelects-v4.min'
+}).use(['jqui', 'formSelects', 'element', 'form', 'laytpl', 'laydate', 'colorpicker', 'slider', 'rate', 'layedit', 'upload'], function () {
+    var $ = layui.jquery, form = layui.form, laytpl = layui.laytpl, laydate = layui.laydate, colorpicker=layui.colorpicker, upload = layui.upload
+        formSelects = layui.formSelects, element = layui.element, slider = layui.slider, rate = layui.rate, layedit = layui.layedit;
+
+    var fun = {
+        mockMakeUUID: function() { // 模拟生成uuid
+            return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+        },
+        guid: function() { // 生成uuid的长串
+            return (fun.mockMakeUUID() + fun.mockMakeUUID() + "-" + fun.mockMakeUUID() + "-" + fun.mockMakeUUID() + "-" 
+                    + fun.mockMakeUUID() + "-" + fun.mockMakeUUID() + fun.mockMakeUUID() + fun.mockMakeUUID());
+        },
+        renderTpl: (_data) => { // 渲染表单元素模板，并返回模板html片段
+            var part;
+            var data = $.extend(true, _data, {
+                widgetHtml: fun.selectFormPart(_data.type)
+            });
+            laytpl($('#formTpl').html()).render(data, (_html) => {
+                part = _html;
+            });
+            return part;
+        },
+        selectFormPart: (_type) => { // 选择表单元素片段
+            switch (_type) {
+                case 'text':
+                    return '<input type="text" class="layui-input">';
+                    break;
+                case 'password':
+                    return '<input type="password" class="layui-input">';
+                    break;
+                case 'textarea':
+                    return '<textarea class="layui-textarea"></textarea>';
+                    break;
+                case 'select':
+                    return '<select><option value=""></option></select>';
+                    break;
+                case 'radio':
+                    return '<input type="radio" name="text" value="文本1" title="文本1"><input type="radio" name="text" value="文本2" title="文本2">';
+                    break;
+                case 'checkbox':
+                    return '<input type="checkbox" name="text[one]" title="文本1">\
+                            <input type="checkbox" name="text[two]" title="文本2">\
+                            <input type="checkbox" name="text[three]" title="文本3">';
+                    break;
+                case 'on-off':
+                    return '<input type="checkbox" name="switch" lay-skin="switch" lay-text="ON|OFF">';
+                    break;
+                case 'datetime':
+                    return '<input type="text" class="layui-input form-edit-datetime" id="date-' + fun.mockMakeUUID() + '">';
+                    break;
+                case 'colorpicker':
+                    return '<div class="form-edit-colorpicker" id="colorpicker-'+fun.mockMakeUUID()+'"></div>';
+                    break;
+                case 'slider':
+                    return '<div class="form-edit-slider" id="slider-'+fun.mockMakeUUID()+'"></div>';
+                    break;
+                case 'rate':
+                    return '<div class="form-edit-rate" id="rate-'+fun.mockMakeUUID()+'"></div>';
+                    break;
+                case 'upload':
+                    return '<button type="button" class="layui-btn form-edit-upload" id="upload-'+fun.mockMakeUUID()+'">选择图片</button>';
+                    break;
+                case 'editor':
+                    return '<div class="form-edit-editor" id="editor-'+fun.mockMakeUUID()+'"></div>';
+                    break;
+                case 'gridLayout':
+                    return '<div class="layui-row" style="padding-bottom: 15px;">\
+                                <div class="layui-col-xs6 layui-col-sm6 layui-col-md6 form-edit-gridLayout"></div>\
+                                <div class="layui-col-xs6 layui-col-sm6 layui-col-md6 form-edit-gridLayout"></div>\
+                            </div>';
+                    break;
+                default:
+                    break;
+            }
+            return false;
+        }
+    };
+
+    // 在这个容器中的块件可以上下排序移动
+    $("#form-container").sortable({
+        revert: true,
+        cancel: '' // 插件默认设置表单元素不可拖拽
+    });
+
+    // clone移动字段到指定容器
+    $(".form-edit-widget-label").draggable({
+        addClasses: false,
+        connectToSortable: "#form-container",
+        revert: "invalid",
+        scroll: true,
+        opacity: 0.35,
+        helper: (_event) => {
+            var type = $(_event.target).data('form'), id = fun.guid(), label = $(_event.target).text();
+            var tpl = fun.renderTpl({ id, type, label });
+            return $(tpl);
+        },
+        zIndex: 100,
+        stop: (_e, _ui) => {
+            // 到这里可以修改样式，自适应高度
+            console.log(_ui.helper.css({'height': 'auto'}));
+            if (_ui.helper.find('.form-edit-datetime').length > 0) {
+                // 获取日期选择器的元素id值，用来实例化layui的日期选择器
+                // 实例化渲染layui的日期选择器
+                laydate.render({
+                    elem: '#' + _ui.helper.find('.form-edit-datetime').attr('id')
+                });
+            }else if (_ui.helper.find('.form-edit-colorpicker').length > 0 ) {
+                colorpicker.render({
+                    elem: '#' + _ui.helper.find('.form-edit-colorpicker').attr('id')
+                });
+            }else if (_ui.helper.find('.form-edit-slider').length > 0 ) {
+                slider.render({
+                    elem: '#' + _ui.helper.find('.form-edit-slider').attr('id')
+                });
+            }else if (_ui.helper.find('.form-edit-rate').length > 0 ) {
+                rate.render({
+                    elem: '#' + _ui.helper.find('.form-edit-rate').attr('id')
+                });
+            }else if (_ui.helper.find('.form-edit-upload').length > 0 ) {
+                upload.render({
+                    elem: '#' + _ui.helper.find('.form-edit-upload').attr('id')
+                });
+            }else if (_ui.helper.find('.form-edit-editor').length > 0 ) {
+                layedit.build(_ui.helper.find('.form-edit-editor').attr('id'));
+            }
+            form.render();
+        },
+    });
+
+    $("#form-container").disableSelection();
+
+    // 点击高亮显示当前node，并取消其他高亮节点
+    $(document).on('click', '.form-edit-comm', function() {
+        var allnode = $('#form-container').children('.form-edit-comm'), id = this.id;
+        $.each(allnode, function (i, v) { 
+            if (v.id === id) {
+                $(this).addClass('form-edit-comm-active');
+            }else{
+                $(v).removeClass('form-edit-comm-active');
+            }
+        });
+    });
+
+
+});
+</script>
+</body>
+
+</html>

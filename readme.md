@@ -177,3 +177,6 @@ CREATE TABLE `workflow_demand_step_user` (
 2019-2-22
 1. 减少重新绘图时，出现代码报错的几率（主要会报错还是出现在后端数据回显时，线无法正常重绘）
 2. 修改判断是回显的绘图数据还是重新手工添加的数据，如果是空对象（ $.isEmptyObject(conn.getParameters()) ），那么需要重新设置Parameters（ conn.setParameters({ }) ）进去，连线后的逻辑
+
+2019-2-25
+1. 新增一个表单编辑器（还未完成）
