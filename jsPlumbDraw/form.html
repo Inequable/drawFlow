@@ -28,30 +28,31 @@
                             <legend style="font-size: 14px;font-weight: bold;color: #666666;">基础字段</legend>
                         </fieldset>
                         <ul class="form-edit-widget">
-                            <li class="layui-elip form-edit-widget-label" data-form="text">单行文本</li>
-                            <li class="layui-elip form-edit-widget-label" data-form="password">密码文本</li>
-                            <li class="layui-elip form-edit-widget-label" data-form="textarea">多行文本</li>
-                            <li class="layui-elip form-edit-widget-label" data-form="select">下拉选择框</li>
-                            <li class="layui-elip form-edit-widget-label" data-form="checkbox">复选框</li>
-                            <li class="layui-elip form-edit-widget-label" data-form="radio">单选按钮</li>
-                            <li class="layui-elip form-edit-widget-label" data-form="on-off">开关</li>
-                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-date" data-form="datetime">时间选择器</li>
-                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-theme" data-form="colorpicker">颜色选择器</li>
-                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-slider" data-form="slider">滑块</li>
-                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-rate-solid" data-form="rate">评分</li>
+                            <li class="layui-elip form-edit-widget-label" title="单行文本" data-form="text">单行文本</li>
+                            <li class="layui-elip form-edit-widget-label" title="密码文本" data-form="password">密码文本</li>
+                            <li class="layui-elip form-edit-widget-label" title="计数器" data-form="number">计数器</li>
+                            <li class="layui-elip form-edit-widget-label" title="多行文本" data-form="textarea">多行文本</li>
+                            <li class="layui-elip form-edit-widget-label" title="下拉选择框" data-form="select">下拉选择框</li>
+                            <li class="layui-elip form-edit-widget-label" title="复选框" data-form="checkbox">复选框</li>
+                            <li class="layui-elip form-edit-widget-label" title="单选按钮" data-form="radio">单选按钮</li>
+                            <li class="layui-elip form-edit-widget-label" title="开关" data-form="on-off">开关</li>
+                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-date" title="时间选择器" data-form="datetime">时间选择器</li>
+                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-theme" title="颜色选择器" data-form="colorpicker">颜色选择器</li>
+                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-slider" title="滑块" data-form="slider">滑块</li>
+                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-rate-solid" title="评分" data-form="rate">评分</li>
                         </ul>
                         <fieldset class="layui-elem-field layui-field-title">
                             <legend style="font-size: 14px;font-weight: bold;color: #666666;">高级字段</legend>
                         </fieldset>
                         <ul class="form-edit-widget">
-                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-file" data-form="upload">上传文件</li>
-                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-fonts-clear" data-form="editor">富文本编辑器</li>
+                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-file" title="上传文件" data-form="upload">上传文件</li>
+                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-fonts-clear" title="富文本编辑器" data-form="editor">富文本编辑器</li>
                         </ul>
                         <fieldset class="layui-elem-field layui-field-title">
                             <legend style="font-size: 14px;font-weight: bold;color: #666666;">布局字段</legend>
                         </fieldset>
                         <ul class="form-edit-widget">
-                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-app" data-form="gridLayout">栅格布局</li>
+                            <li class="layui-elip form-edit-widget-label layui-icon layui-icon-app" title="栅格布局" data-form="gridLayout">栅格布局</li>
                         </ul>
                     </div>
                 </div>
@@ -59,11 +60,8 @@
             <div class="layui-col-md7">
                 <div class="layui-card">
                     <div class="layui-card-header">自定义的表单集</div>
-                    <div class="layui-card-body">
-                        <div class="form-container layui-form" id="form-container">
-                            <!-- 放置自定义的表单集的容器 -->
-                            
-                        </div>
+                    <div class="layui-card-body form-container layui-form" id="form-container">
+                        <!-- 放置自定义的表单集的容器 -->
                     </div>
                 </div>
             </div>
@@ -79,9 +77,8 @@
                                     <li>表单属性</li>
                                 </ul>
                                 <div class="layui-tab-content">
-                                    <div class="layui-tab-item layui-show">
-                                        <form action="" method="POST" onsubmit="return false;" class="layui-form layui-form-pane">
-                                        </form>
+                                    <div class="layui-tab-item layui-show" id="setFieldAttr">
+                                        <!-- 设置表单字段属性 -->
                                     </div>
                                     <div class="layui-tab-item">内容2</div>
                                 </div>
@@ -92,6 +89,68 @@
             </div>
         </div>
     </div>
+
+<!-- 设置表单字段属性 -->
+<script type="text/html" id="fieldAttr">
+<form action="" method="POST" onsubmit="return false;" class="layui-form layui-form-pane" lay-filter="fieldAttr">
+    <div class="layui-form-item">
+        <label class="layui-form-label">数据绑定Key</label>
+        <div class="layui-input-block">
+            <input type="hidden" name="RKey" value="">
+            <input type="text" name="name" placeholder="请输入" autocomplete="off" class="layui-input" lay-verify="required">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">标题</label>
+        <div class="layui-input-block">
+            <input type="text" name="label" placeholder="请输入标题" autocomplete="off" class="layui-input" lay-verify="required">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">默认值</label>
+        <div class="layui-input-block">
+            <input type="text" name="value" placeholder="请输入默认值" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">占位内容</label>
+        <div class="layui-input-block">
+            <input type="text" name="placeholder" placeholder="请输入占位内容" autocomplete="off" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item" pane>
+        <label class="layui-form-label">是否只读</label>
+        <div class="layui-input-block">
+            <input type="checkbox" name="readonly" lay-skin="switch" lay-text="是|否">
+        </div>
+    </div>
+    <div class="layui-form-item" pane>
+        <label class="layui-form-label">是否禁用</label>
+        <div class="layui-input-block">
+            <input type="checkbox" name="disabled" lay-skin="switch" lay-text="是|否">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">校验</label>
+        <div class="layui-input-block">
+            <select name="layVerify" xm-select="select1">
+                <option value="">请选择校验规则</option>
+                <option value="required">必填项</option>
+                <option value="phone">手机号</option>
+                <option value="email">邮箱</option>
+                <option value="url">网址</option>
+                <option value="number">数字</option>
+                <option value="date">日期</option>
+                <option value="identity">身份证</option>
+            </select>
+        </div>
+    </div>
+    <!-- <div class="layui-form-item" style="text-align: center;">
+        <button class="layui-btn" lay-submit lay-filter="form-plugin-submit">立即提交</button>
+        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+    </div> -->
+</form>
+</script>
 
 <!-- 表单模板 -->
 <script type="text/html" id="formTpl">
@@ -137,10 +196,32 @@ layui.config({
             });
             return part;
         },
+        renderSetFieldAttr: (_data) => {
+            var uuid = fun.guid();
+            var data = $.extend(true, {
+                RKey: uuid,
+                name: uuid,
+                label: '',
+                value: '',
+                placeholder: '',
+                readonly: '',
+                disabled: '',
+                layVerify: '',
+            }, _data);
+            laytpl($('#fieldAttr').html()).render(data, (_html) => {
+                $('#setFieldAttr').html(_html);
+            });
+            form.val('fieldAttr', data);
+            form.render();
+            formSelects.render();
+        },
         selectFormPart: (_type) => { // 选择表单元素片段
             switch (_type) {
                 case 'text':
                     return '<input type="text" class="layui-input">';
+                    break;
+                case 'number':
+                    return '<input type="number" class="layui-input">';
                     break;
                 case 'password':
                     return '<input type="password" class="layui-input">';
@@ -196,7 +277,8 @@ layui.config({
     // 在这个容器中的块件可以上下排序移动
     $("#form-container").sortable({
         revert: true,
-        cancel: '' // 插件默认设置表单元素不可拖拽
+        cancel: '', // 插件默认设置表单元素不可拖拽
+        placeholder: "form-plugin-placeholder"
     });
 
     // clone移动字段到指定容器
@@ -206,15 +288,18 @@ layui.config({
         revert: "invalid",
         scroll: true,
         opacity: 0.35,
+        width: 'auto',
+        zIndex: 100,
         helper: (_event) => {
             var type = $(_event.target).data('form'), id = fun.guid(), label = $(_event.target).text();
             var tpl = fun.renderTpl({ id, type, label });
             return $(tpl);
         },
-        zIndex: 100,
-        stop: (_e, _ui) => {
+        start: (_e, _ui) => {
             // 到这里可以修改样式，自适应高度
-            console.log(_ui.helper.css({'height': 'auto'}));
+            _ui.helper.css({ 'height': 'auto' })
+        },
+        stop: (_e, _ui) => {
             if (_ui.helper.find('.form-edit-datetime').length > 0) {
                 // 获取日期选择器的元素id值，用来实例化layui的日期选择器
                 // 实例化渲染layui的日期选择器
@@ -246,12 +331,22 @@ layui.config({
 
     $("#form-container").disableSelection();
 
+    // 监听窗口变化，并自适应改变容器高度
+    if ($('.layui-card-body').height() < $(window).height()) {
+        $('.layui-card-body').height($(window).height() - 80);
+    }
+    $(window).resize(function() {
+        $('.layui-card-body').height($(window).height() - 80);
+    });
+
     // 点击高亮显示当前node，并取消其他高亮节点
     $(document).on('click', '.form-edit-comm', function() {
-        var allnode = $('#form-container').children('.form-edit-comm'), id = this.id;
+        var allnode = $('#form-container').children('.form-edit-comm'), id = this.id, 
+            json = $(this).data('json');
         $.each(allnode, function (i, v) { 
             if (v.id === id) {
                 $(this).addClass('form-edit-comm-active');
+                fun.renderSetFieldAttr(json);
             }else{
                 $(v).removeClass('form-edit-comm-active');
             }
