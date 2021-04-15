@@ -242,12 +242,12 @@
 <script src="../layui/layui.js"></script>
 <script>
 layui.config({
-    base: 'file:///D:/' // 配置layui第三方插件存放的基础路径，自由更改
+    base: './' // 配置layui第三方插件存放的基础路径，自由更改
 }).extend({
-    jqui: '/drawFlow/jsplumb/jQueryUI.min',
-    jsPlumb: '/drawFlow/jsplumb/jquery_jsplumb_forlayui.min',
-    draw: '/drawFlow/jsPlumbDraw/config',
-    formSelects: '/drawFlow/jsPlumbDraw/formSelects-v4.min'
+    jqui: '../jsplumb/jQueryUI.min',
+    jsPlumb: '../jsplumb/jquery_jsplumb_forlayui.min',
+    draw: 'config',
+    formSelects: 'formSelects-v4.min'
 }).use(['laytpl', 'layer', 'jsPlumb', 'jqui', 'draw', 'table', 'formSelects', 'element', 'form'], function() {
     var $ = layui.jquery, laytpl = layui.laytpl, jsPlumb = layui.jsPlumb, draw = layui.draw, form = layui.form,
         layer = layui.layer, table = layui.table, formSelects = layui.formSelects, element = layui.element;
