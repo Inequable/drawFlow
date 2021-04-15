@@ -1,5 +1,7 @@
 若要访问此网站，请问访问网站下jsPlumbDraw文件下的index.html，并且将`index.html`文件中，layui的的`base路径改成绝对路径或者域名`，此网站为静态网站
 
+网站体验网址: [✈️ 流程图绘制](https://inequable.github.io/drawFlow/jsPlumbDraw/)
+
 - 运用的技术：HTML、jQuery、JavaScript（目前是纯静态资源）
 - 框架：layui、jsplumb
 - 学习layui网址：https://www.layui.com/ （官网）
